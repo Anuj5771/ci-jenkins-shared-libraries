@@ -3,23 +3,22 @@ package opstree.common
 import opstree.common.*
 
 def size_validator_factory(Map step_params) {
-    logger = new logger()
+    def logger = new logger()
     if (step_params.image_size_validator_check == 'true') {
         image_size_validator(step_params)
+    } else {
+        logger.logger('msg':'No valid option selected for image size validation. Please mention correct values.', 'level':'WARN')
     }
-  else {
-        logger.logger('msg':'No valid option selected for creds scanning. Please mention correct values.', 'level':'WARN')
-  }
 }
 
 def image_size_validator(Map step_params) {
-    logger = new logger()
-    parser = new parser()
-    image_scanning_check_reports = new reports_management()
+    def logger                       = new logger()
+    def parser                       = new parser()
+    def image_scanning_check_reports = new reports_management()
 
     logger.logger('msg':'Performing Image Scanning', 'level':'INFO')
 
-    fail_job_if_validation_fail =  "${step_params.fail_job_if_validation_fail}"
+    def fail_job_if_validation_fail = "${step_params.fail_job_if_validation_fail}"
 
     dir("${WORKSPACE}") {
         try {
@@ -36,20 +35,16 @@ def image_size_validator(Map step_params) {
 
                 if (imageSize > step_params.max_allowed_image_size.toInteger()) {
                     logger.logger('msg':'Build failed. Image size is larger than the allowed limit.', 'level':'ERROR')
-
                     if (step_params.fail_job_if_validation_fail == 'true') {
                         logger.logger('msg':'Size of image is more than expected.', 'level':'ERROR')
                         error 'Size of image is more than expected.'
-                    }
-                    else {
+                    } else {
                         logger.logger('msg':'Size of image is more than expected, but ignoring this issue as per user input.', 'level':'INFO')
                     }
-                }
-                else {
+                } else {
                     logger.logger('msg':'Image size is within the expected limit.', 'level':'INFO')
                 }
-            }
-            else {
+            } else {
                 logger.logger('msg':"Image ${step_params.image_name} not found", 'level':'ERROR')
                 error "Image ${step_params.image_name} not found"
             }
@@ -57,9 +52,7 @@ def image_size_validator(Map step_params) {
             if (fail_job_if_validation_fail == 'true') {
                 logger.logger('msg':"Size validation failed: ${e.message}", 'level':'ERROR')
                 error 'Size validation failed. Please check the logs for more details.'
-            }
-
-            else  {
+            } else {
                 logger.logger('msg':'Size validation failed: But ignoring based on user inputs', 'level':'INFO')
             }
         }

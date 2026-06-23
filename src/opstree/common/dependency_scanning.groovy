@@ -29,12 +29,27 @@ def dependency_scan(Map step_params) {
     def owasp_report_format = "${step_params.owasp_report_format}"
     def owasp_report_publish= "${step_params.owasp_report_publish}"
     def owasp_version       = 'latest'
-    def source_code_path    = "${step_params.source_code_path}"
-    def app_stack           = "${step_params.app_stack}"
-    def pom_location        = "${step_params.pom_location}"
+    def source_code_path    = "${step_params.source_code_path ?: ''}"
+    def app_stack           = "${step_params.app_stack ?: ''}"
+    def pom_location        = "${step_params.pom_location ?: ''}"
 
-    def repo_dir     = parser.fetch_git_repo_name('repo_url':"${repo_url}")
-    def new_repo_dir = repo_dir + source_code_path
+    def repo_dir = parser.fetch_git_repo_name('repo_url':"${repo_url}")
+
+    // ── Resolve the directory to scan ───────────────────────────────────────
+    // source_code_path is relative to WORKSPACE (e.g. "/spring-boot-realworld-example-app").
+    // Do NOT append it to repo_dir — that creates a non-existent double directory.
+    // Rule:
+    //   • If source_code_path is set → mount WORKSPACE + source_code_path
+    //   • Otherwise               → mount WORKSPACE/repo_dir (the git checkout root)
+    def scanHostDir
+    if (source_code_path?.trim()) {
+        // Strip any leading slash to avoid double-slash, then rejoin cleanly
+        scanHostDir = "${WORKSPACE}/${source_code_path.replaceAll('^/', '')}"
+    } else {
+        scanHostDir = "${WORKSPACE}/${repo_dir}"
+    }
+
+    logger.logger('msg':"OWASP scan source directory: ${scanHostDir}", 'level':'INFO')
 
     if (dependency_scan_tool == 'owasp') {
         sh "mkdir -p ${WORKSPACE}/owasp-reports"
@@ -71,32 +86,19 @@ def dependency_scan(Map step_params) {
         def owaspDockerBase = "docker run --rm --memory=4g --memory-swap=4g"
         def owaspDataVol    = "-v ${JENKINS_HOME}/owasp-data:/usr/share/dependency-check/data:z"
         def owaspReportsVol = "-v ${WORKSPACE}/owasp-reports:/reports:z"
+        def owaspSrcVol     = "-v ${scanHostDir}:/src:z"
 
         // ── Helper closure: run the actual scan with optional NVD key ────────
-        // The NVD API key is read from Jenkins credentials (string type).
-        // If nvd_api_key_creds_id is empty the withCredentials block still works
-        // but we skip appending the flag.
         def runOwaspScan = { String extraFlags ->
+            def experimentalFlag = (app_stack == 'python' || app_stack == 'angular') ? '--enableExperimental' : ''
             if (nvd_api_key_creds_id?.trim()) {
                 withCredentials([string(credentialsId: "${nvd_api_key_creds_id}", variable: 'NVD_API_KEY')]) {
-                    def owaspScanArgs = "--format ALL --project '${owasp_project_name}' --out /reports ${extraFlags} --nvdApiKey \${NVD_API_KEY}"
-                    if (app_stack == 'java') {
-                        sh "${owaspDockerBase} -v ${WORKSPACE}/${pom_location}:/src:z ${owaspDataVol} ${owaspReportsVol} owasp/dependency-check:${owasp_version} --scan /src ${owaspScanArgs}"
-                    } else if (app_stack == 'python' || app_stack == 'angular') {
-                        sh "${owaspDockerBase} -v ${WORKSPACE}/${new_repo_dir}:/src:z ${owaspDataVol} ${owaspReportsVol} owasp/dependency-check:${owasp_version} --enableExperimental --scan /src ${owaspScanArgs}"
-                    } else {
-                        sh "${owaspDockerBase} -v ${WORKSPACE}/${new_repo_dir}:/src:z ${owaspDataVol} ${owaspReportsVol} owasp/dependency-check:${owasp_version} --scan /src ${owaspScanArgs}"
-                    }
+                    def owaspScanArgs = "--format ALL --project '${owasp_project_name}' --out /reports ${extraFlags} --nvdApiKey \${NVD_API_KEY} ${experimentalFlag}"
+                    sh "${owaspDockerBase} ${owaspSrcVol} ${owaspDataVol} ${owaspReportsVol} owasp/dependency-check:${owasp_version} --scan /src ${owaspScanArgs}"
                 }
             } else {
-                def owaspScanArgs = "--format ALL --project '${owasp_project_name}' --out /reports ${extraFlags}"
-                if (app_stack == 'java') {
-                    sh "${owaspDockerBase} -v ${WORKSPACE}/${pom_location}:/src:z ${owaspDataVol} ${owaspReportsVol} owasp/dependency-check:${owasp_version} --scan /src ${owaspScanArgs}"
-                } else if (app_stack == 'python' || app_stack == 'angular') {
-                    sh "${owaspDockerBase} -v ${WORKSPACE}/${new_repo_dir}:/src:z ${owaspDataVol} ${owaspReportsVol} owasp/dependency-check:${owasp_version} --enableExperimental --scan /src ${owaspScanArgs}"
-                } else {
-                    sh "${owaspDockerBase} -v ${WORKSPACE}/${new_repo_dir}:/src:z ${owaspDataVol} ${owaspReportsVol} owasp/dependency-check:${owasp_version} --scan /src ${owaspScanArgs}"
-                }
+                def owaspScanArgs = "--format ALL --project '${owasp_project_name}' --out /reports ${extraFlags} ${experimentalFlag}"
+                sh "${owaspDockerBase} ${owaspSrcVol} ${owaspDataVol} ${owaspReportsVol} owasp/dependency-check:${owasp_version} --scan /src ${owaspScanArgs}"
             }
         }
 

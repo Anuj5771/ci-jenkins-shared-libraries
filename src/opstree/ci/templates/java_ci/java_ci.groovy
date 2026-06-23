@@ -11,28 +11,28 @@ def call(Map step_params) {
         def enableOverride = step_params.enable_jenkins_build_param_override?.toBoolean() ?: false
         echo "enableoveride = ${enableOverride}"
 
-        workspace = new workspace_management()
-        vcs = new git_management()
-        credscan = new vulnerability_scanning()
-        dependencyscan = new dependency_scanning()
-        static_code_analysis = new static_code_analysis()
-        unittest = new junit()
-        securityscan = new snyk_scanning()
-        build_dockerfile = new build_dockerfile()
-        coverage = new codecoverage()
-        publish = new publish_artifact()
-        trivy = new docker_image_scanning()
-        dockle = new dockle_scanning()
-        image_size_validator = new image_size_validator()
-        notify = new notify()
-        build = new build_artifact()
-        packer = new build_packer_ami()
-        jira = new jira_management()
+        def workspace             = new workspace_management()
+        def vcs                   = new git_management()
+        def credscan              = new vulnerability_scanning()
+        def dependencyscan        = new dependency_scanning()
+        def static_code_analysis  = new static_code_analysis()
+        def unittest              = new junit()
+        def securityscan          = new snyk_scanning()
+        def build_dockerfile      = new build_dockerfile()
+        def coverage              = new codecoverage()
+        def publish               = new publish_artifact()
+        def trivy                 = new docker_image_scanning()
+        def dockle                = new dockle_scanning()
+        def image_size_validator  = new image_size_validator()
+        def notify                = new notify()
+        def build                 = new build_artifact()
+        def packer                = new build_packer_ami()
+        def jira                  = new jira_management()
 
+        def repo_url
         if (get_params_value(enableOverride, step_params, 'repo_url_type') == 'http') {
                 repo_url = "${get_params_value(enableOverride, step_params, 'repo_https_url')}"
-        }
-        else if (get_params_value(enableOverride, step_params, 'repo_url_type') == 'ssh') {
+        } else if (get_params_value(enableOverride, step_params, 'repo_url_type') == 'ssh') {
                 repo_url = "${get_params_value(enableOverride, step_params, 'repo_ssh_url')}"
         }
         try {
@@ -285,8 +285,8 @@ def call(Map step_params) {
                 }
 
                 if (currentBuild.currentResult == 'SUCCESS' && get_params_value(enableOverride, step_params, 'enable_trigger_cd_pipeline') != null && get_params_value(enableOverride, step_params, 'enable_trigger_cd_pipeline').toBoolean() ) {
-                        parser = new parser()
-                        repo_dir = parser.fetch_git_repo_name('repo_url':"${repo_url}")
+                        def parser  = new parser()
+                        def repo_dir = parser.fetch_git_repo_name('repo_url':"${repo_url}")
 
                         def docker_image_tag = sh(
                         script: """git config --global --add safe.directory ${WORKSPACE}/${repo_dir} && \
