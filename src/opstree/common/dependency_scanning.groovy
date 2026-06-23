@@ -54,7 +54,7 @@ def dependency_scan(Map step_params) {
         def noUpdateFlag = sh(script: """
             DB_FILE="${JENKINS_HOME}/owasp-data/odc.mv.db"
             if [ -f "\$DB_FILE" ]; then
-                AGE_HOURS=\$(( ( \$(date +%s) - \$(stat -f %m "\$DB_FILE" 2>/dev/null || stat -c %Y "\$DB_FILE" 2>/dev/null || echo 0) ) / 3600 ))
+                AGE_HOURS=\$(( ( \$(date +%s) - \$(stat -c %Y "\$DB_FILE" 2>/dev/null || echo 0) ) / 3600 ))
                 if [ "\$AGE_HOURS" -lt "24" ] 2>/dev/null; then
                     echo "--noupdate"
                 else

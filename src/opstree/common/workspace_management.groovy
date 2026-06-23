@@ -1,9 +1,9 @@
 package opstree.common
 
 def workspace_management(Map step_params) {
-    logger = new opstree.common.logger()
+    def logger = new opstree.common.logger()
 
-    params = [
+    def params = [
         clean_workspace: get_value(step_params, 'clean_workspace', true),
         ignore_clean_workspace_failure: get_value(step_params, 'ignore_clean_workspace_failure', false),
         delete_dirs: get_value(step_params, 'delete_dirs', true),
