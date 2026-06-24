@@ -1,36 +1,47 @@
 // =============================================================================
 //  Jenkinsfile.pr-validation
-//  → Yeh file montra-liquibase GitHub repo ki ROOT mein rakhni hai
-//  → GitHub Actions ki pr-validation.yml ka Jenkins replacement
+//  Path in repo: resources/jenkinsfiles/liquibase/Jenkinsfile.pr-validation
 //
-//  Trigger: PR open/update hone pe (GitHub Webhook → Pull Request event)
-//  Job type: Pipeline Job (Script path: Jenkinsfile.pr-validation)
+//  Trigger:  Pull Request event (GitHub Webhook)
+//  Job type: Pipeline Job
+//  SCM:      https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git
+//  Branch:   liquibase
+//  Script:   resources/jenkinsfiles/liquibase/Jenkinsfile.pr-validation
+//
 // =============================================================================
 
-@Library('ci-jenkins-shared-libraries') _
+@Library('ci-jenkins-shared-libraries@liquibase') _
 
 node('self-hosted') {
-    liquibase_ci(
-        pipeline_type               : 'pr-validation',
 
-        // ── Source repo ────────────────────────────────────────────────────
-        repo_https_url              : 'https://github.com/priyanshu499-ops/montra-liquibase.git',
-        repo_branch                 : env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: 'main',
-        jenkins_git_creds_id        : 'github-creds',
-        source_code_path            : 'montra-liquibase',
-        changelog_file              : 'changelog/db.changelog-master.xml',
+    stage('Git Checkout') {
+        echo "Workspace already has ci-jenkins-shared-libraries files"
+        echo "Liquibase files location: ${WORKSPACE}/liquibase/"
+        checkout scm
+    }
 
-        // ── DB Credentials (Jenkins Secret Text IDs) ───────────────────────
-        liquibase_url_creds_id      : 'LIQUIBASE_URL',
-        liquibase_username_creds_id : 'LIQUIBASE_USERNAME',
-        liquibase_password_creds_id : 'LIQUIBASE_PASSWORD',
+    stage('Liquibase Validate') {
+        withCredentials([
+            string(credentialsId: 'LIQUIBASE_URL',      variable: 'LB_URL'),
+            string(credentialsId: 'LIQUIBASE_USERNAME', variable: 'LB_USER'),
+            string(credentialsId: 'LIQUIBASE_PASSWORD', variable: 'LB_PASS')
+        ]) {
+            dir("${WORKSPACE}/liquibase") {
+                sh '''
+                    echo "=== Running Liquibase Validate ==="
+                    export LIQUIBASE_URL="${LB_URL}"
+                    export LIQUIBASE_USERNAME="${LB_USER}"
+                    export LIQUIBASE_PASSWORD="${LB_PASS}"
+                    liquibase validate
+                    echo "=== Changelog is VALID — PR can be merged ==="
+                '''
+            }
+        }
+    }
 
-        // ── Execution ──────────────────────────────────────────────────────
-        use_docker                  : false,
+    post_build_cleanup()
+}
 
-        // ── Notifications ─────────────────────────────────────────────────
-        notification_enabled        : false,
-
-        clean_workspace             : true
-    )
+def post_build_cleanup() {
+    echo "Pipeline completed with status: ${currentBuild.currentResult}"
 }

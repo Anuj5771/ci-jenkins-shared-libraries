@@ -1,45 +1,89 @@
 // =============================================================================
 //  Jenkinsfile.deploy
-//  → Yeh file montra-liquibase GitHub repo ki ROOT mein rakhni hai
-//  → GitHub Actions ki deploy.yml ka Jenkins replacement
+//  Path in repo: resources/jenkinsfiles/liquibase/Jenkinsfile.deploy
 //
-//  Trigger: Push to main/master branch (GitHub Webhook → Push event)
-//  Job type: Pipeline Job (Script path: Jenkinsfile.deploy)
+//  Trigger:  Push to `liquibase` branch (GitHub Webhook → Push event)
+//  Job type: Pipeline Job
+//  SCM:      https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git
+//  Branch:   liquibase
+//  Script:   resources/jenkinsfiles/liquibase/Jenkinsfile.deploy
+//
+//  NOTE: Koi aur repo nahi chahiye. Jenkins workspace mein
+//        ci-jenkins-shared-libraries checkout hoti hai jisme
+//        liquibase/ folder already hai.
 // =============================================================================
 
-@Library('ci-jenkins-shared-libraries') _
+@Library('ci-jenkins-shared-libraries@liquibase') _
 
-// Concurrent builds allowed nahi — same as GitHub Actions concurrency block
+// Concurrent builds band — ek waqt mein sirf ek deploy chalega
 properties([
     disableConcurrentBuilds(abortPrevious: false)
 ])
 
 node('self-hosted') {
-    liquibase_ci(
-        pipeline_type               : 'deploy',
 
-        // ── Source repo ────────────────────────────────────────────────────
-        repo_https_url              : 'https://github.com/priyanshu499-ops/montra-liquibase.git',
-        repo_branch                 : 'main',
-        jenkins_git_creds_id        : 'github-creds',
-        source_code_path            : 'montra-liquibase',
-        changelog_file              : 'changelog/db.changelog-master.xml',
+    stage('Git Checkout') {
+        echo "Checking out ci-jenkins-shared-libraries (liquibase branch)"
+        checkout scm
+    }
 
-        // ── DB Credentials (Jenkins Secret Text IDs) ───────────────────────
-        liquibase_url_creds_id      : 'LIQUIBASE_URL',
-        liquibase_username_creds_id : 'LIQUIBASE_USERNAME',
-        liquibase_password_creds_id : 'LIQUIBASE_PASSWORD',
+    stage('Liquibase Validate') {
+        withCredentials([
+            string(credentialsId: 'LIQUIBASE_URL',      variable: 'LB_URL'),
+            string(credentialsId: 'LIQUIBASE_USERNAME', variable: 'LB_USER'),
+            string(credentialsId: 'LIQUIBASE_PASSWORD', variable: 'LB_PASS')
+        ]) {
+            dir("${WORKSPACE}/liquibase") {
+                sh '''
+                    echo "=== Pre-deploy Validation ==="
+                    export LIQUIBASE_URL="${LB_URL}"
+                    export LIQUIBASE_USERNAME="${LB_USER}"
+                    export LIQUIBASE_PASSWORD="${LB_PASS}"
+                    liquibase validate
+                    echo "=== Validation PASSED ==="
+                '''
+            }
+        }
+    }
 
-        // ── Post-deploy: baseline snapshot banao (drift detection ke liye) ──
-        create_snapshot_after_deploy: true,
-        snapshot_dir                : 'snapshots',
+    stage('Liquibase Update') {
+        withCredentials([
+            string(credentialsId: 'LIQUIBASE_URL',      variable: 'LB_URL'),
+            string(credentialsId: 'LIQUIBASE_USERNAME', variable: 'LB_USER'),
+            string(credentialsId: 'LIQUIBASE_PASSWORD', variable: 'LB_PASS')
+        ]) {
+            dir("${WORKSPACE}/liquibase") {
+                sh '''
+                    echo "=== Applying Database Migrations ==="
+                    export LIQUIBASE_URL="${LB_URL}"
+                    export LIQUIBASE_USERNAME="${LB_USER}"
+                    export LIQUIBASE_PASSWORD="${LB_PASS}"
+                    liquibase update
+                    echo "=== Migrations Applied Successfully ==="
+                '''
+            }
+        }
+    }
 
-        // ── Execution ──────────────────────────────────────────────────────
-        use_docker                  : false,
-
-        // ── Notifications ─────────────────────────────────────────────────
-        notification_enabled        : false,
-
-        clean_workspace             : true
-    )
+    stage('Create Baseline Snapshot') {
+        withCredentials([
+            string(credentialsId: 'LIQUIBASE_URL',      variable: 'LB_URL'),
+            string(credentialsId: 'LIQUIBASE_USERNAME', variable: 'LB_USER'),
+            string(credentialsId: 'LIQUIBASE_PASSWORD', variable: 'LB_PASS')
+        ]) {
+            dir("${WORKSPACE}/liquibase") {
+                sh '''
+                    echo "=== Creating Baseline Snapshot (for drift detection) ==="
+                    mkdir -p snapshots
+                    export LIQUIBASE_URL="${LB_URL}"
+                    export LIQUIBASE_USERNAME="${LB_USER}"
+                    export LIQUIBASE_PASSWORD="${LB_PASS}"
+                    liquibase snapshot \
+                        --snapshot-format=json \
+                        --output-file=snapshots/baseline.snapshot.json
+                    echo "=== Snapshot saved to liquibase/snapshots/baseline.snapshot.json ==="
+                '''
+            }
+        }
+    }
 }

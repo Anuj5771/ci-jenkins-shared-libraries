@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
+    <changeSet id="v1-initial-schema" author="devops-team">
+        <comment>V1: Create initial Liquibase tracking table</comment>
+
+        <createTable tableName="liquibase_poc_audit" schemaName="public">
+            <column name="id" type="SERIAL">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="message" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <insert tableName="liquibase_poc_audit" schemaName="public">
+            <column name="message" value="V1 applied successfully"/>
+        </insert>
+
+        <rollback>
+            <dropTable tableName="liquibase_poc_audit" schemaName="public"/>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>
