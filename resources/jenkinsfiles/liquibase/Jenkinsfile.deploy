@@ -1,0 +1,45 @@
+// =============================================================================
+//  Jenkinsfile.deploy
+//  → Yeh file montra-liquibase GitHub repo ki ROOT mein rakhni hai
+//  → GitHub Actions ki deploy.yml ka Jenkins replacement
+//
+//  Trigger: Push to main/master branch (GitHub Webhook → Push event)
+//  Job type: Pipeline Job (Script path: Jenkinsfile.deploy)
+// =============================================================================
+
+@Library('ci-jenkins-shared-libraries') _
+
+// Concurrent builds allowed nahi — same as GitHub Actions concurrency block
+properties([
+    disableConcurrentBuilds(abortPrevious: false)
+])
+
+node('self-hosted') {
+    liquibase_ci(
+        pipeline_type               : 'deploy',
+
+        // ── Source repo ────────────────────────────────────────────────────
+        repo_https_url              : 'https://github.com/priyanshu499-ops/montra-liquibase.git',
+        repo_branch                 : 'main',
+        jenkins_git_creds_id        : 'github-creds',
+        source_code_path            : 'montra-liquibase',
+        changelog_file              : 'changelog/db.changelog-master.xml',
+
+        // ── DB Credentials (Jenkins Secret Text IDs) ───────────────────────
+        liquibase_url_creds_id      : 'LIQUIBASE_URL',
+        liquibase_username_creds_id : 'LIQUIBASE_USERNAME',
+        liquibase_password_creds_id : 'LIQUIBASE_PASSWORD',
+
+        // ── Post-deploy: baseline snapshot banao (drift detection ke liye) ──
+        create_snapshot_after_deploy: true,
+        snapshot_dir                : 'snapshots',
+
+        // ── Execution ──────────────────────────────────────────────────────
+        use_docker                  : false,
+
+        // ── Notifications ─────────────────────────────────────────────────
+        notification_enabled        : false,
+
+        clean_workspace             : true
+    )
+}

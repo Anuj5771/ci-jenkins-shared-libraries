@@ -1,0 +1,36 @@
+// =============================================================================
+//  Jenkinsfile.pr-validation
+//  → Yeh file montra-liquibase GitHub repo ki ROOT mein rakhni hai
+//  → GitHub Actions ki pr-validation.yml ka Jenkins replacement
+//
+//  Trigger: PR open/update hone pe (GitHub Webhook → Pull Request event)
+//  Job type: Pipeline Job (Script path: Jenkinsfile.pr-validation)
+// =============================================================================
+
+@Library('ci-jenkins-shared-libraries') _
+
+node('self-hosted') {
+    liquibase_ci(
+        pipeline_type               : 'pr-validation',
+
+        // ── Source repo ────────────────────────────────────────────────────
+        repo_https_url              : 'https://github.com/priyanshu499-ops/montra-liquibase.git',
+        repo_branch                 : env.CHANGE_BRANCH ?: env.BRANCH_NAME ?: 'main',
+        jenkins_git_creds_id        : 'github-creds',
+        source_code_path            : 'montra-liquibase',
+        changelog_file              : 'changelog/db.changelog-master.xml',
+
+        // ── DB Credentials (Jenkins Secret Text IDs) ───────────────────────
+        liquibase_url_creds_id      : 'LIQUIBASE_URL',
+        liquibase_username_creds_id : 'LIQUIBASE_USERNAME',
+        liquibase_password_creds_id : 'LIQUIBASE_PASSWORD',
+
+        // ── Execution ──────────────────────────────────────────────────────
+        use_docker                  : false,
+
+        // ── Notifications ─────────────────────────────────────────────────
+        notification_enabled        : false,
+
+        clean_workspace             : true
+    )
+}

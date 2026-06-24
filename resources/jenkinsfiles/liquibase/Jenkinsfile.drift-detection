@@ -1,0 +1,45 @@
+// =============================================================================
+//  Jenkinsfile.drift-detection
+//  → Yeh file montra-liquibase GitHub repo ki ROOT mein rakhni hai
+//  → GitHub Actions ki drift-detection.yml ka Jenkins replacement
+//
+//  Trigger: Har 6 ghante (cron) + manual "Build Now"
+//  Job type: Pipeline Job (Script path: Jenkinsfile.drift-detection)
+// =============================================================================
+
+@Library('ci-jenkins-shared-libraries') _
+
+// Cron: har 6 ghante — same as GitHub Actions schedule: cron('0 */6 * * *')
+properties([
+    pipelineTriggers([cron('H */6 * * *')])
+])
+
+node('self-hosted') {
+    liquibase_ci(
+        pipeline_type               : 'drift-detection',
+
+        // ── Source repo ────────────────────────────────────────────────────
+        repo_https_url              : 'https://github.com/priyanshu499-ops/montra-liquibase.git',
+        repo_branch                 : 'main',
+        jenkins_git_creds_id        : 'github-creds',
+        source_code_path            : 'montra-liquibase',
+        changelog_file              : 'changelog/db.changelog-master.xml',
+
+        // ── DB Credentials (Jenkins Secret Text IDs) ───────────────────────
+        liquibase_url_creds_id      : 'LIQUIBASE_URL',
+        liquibase_username_creds_id : 'LIQUIBASE_USERNAME',
+        liquibase_password_creds_id : 'LIQUIBASE_PASSWORD',
+
+        // ── Drift report paths ─────────────────────────────────────────────
+        snapshot_dir                : 'snapshots',
+        reports_dir                 : 'drift-reports',
+
+        // ── Execution ──────────────────────────────────────────────────────
+        use_docker                  : false,
+
+        // ── Notifications ─────────────────────────────────────────────────
+        notification_enabled        : false,
+
+        clean_workspace             : true
+    )
+}
