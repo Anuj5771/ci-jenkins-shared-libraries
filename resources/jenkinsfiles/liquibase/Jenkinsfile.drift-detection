@@ -1,27 +1,9 @@
-// =============================================================================
-//  Jenkinsfile.drift-detection
-//  Path in repo: resources/jenkinsfiles/liquibase/Jenkinsfile.drift-detection
-//
-//  Trigger:  Har 6 ghante (cron) + manual "Build Now"
-//  Job type: Pipeline Job
-//  SCM:      https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git
-//  Branch:   liquibase
-//  Script:   resources/jenkinsfiles/liquibase/Jenkinsfile.drift-detection
-//
-//  NOTE: Koi aur repo nahi chahiye.
-// =============================================================================
-
 @Library('ci-jenkins-shared-libraries@liquibase') _
 
-// Cron: har 6 ghante — same as GitHub Actions schedule
-properties([
-    pipelineTriggers([cron('H */6 * * *')])
-])
+properties([pipelineTriggers([cron('H */6 * * *')])])
 
 node('built-in') {
-
     stage('Git Checkout') {
-        echo "Checking out ci-jenkins-shared-libraries (liquibase branch)"
         checkout scm
     }
 
@@ -34,10 +16,12 @@ node('built-in') {
             dir("${WORKSPACE}/liquibase") {
                 sh '''
                     echo "=== Checking Pending Changesets ==="
-                    export LIQUIBASE_URL="${LB_URL}"
-                    export LIQUIBASE_USERNAME="${LB_USER}"
-                    export LIQUIBASE_PASSWORD="${LB_PASS}"
-                    liquibase status --verbose
+                    liquibase \
+                        --url="${LB_URL}" \
+                        --username="${LB_USER}" \
+                        --password="${LB_PASS}" \
+                        --changelog-file=changelog/db.changelog-master.xml \
+                        status --verbose
                 '''
             }
         }
@@ -52,21 +36,18 @@ node('built-in') {
             dir("${WORKSPACE}/liquibase") {
                 sh '''
                     mkdir -p drift-reports snapshots
-
-                    export LIQUIBASE_URL="${LB_URL}"
-                    export LIQUIBASE_USERNAME="${LB_USER}"
-                    export LIQUIBASE_PASSWORD="${LB_PASS}"
-
                     if [ -f "snapshots/baseline.snapshot.json" ]; then
-                        echo "=== Comparing live DB against baseline snapshot ==="
-                        liquibase diff \
+                        echo "=== Comparing live DB against baseline ==="
+                        liquibase \
+                            --url="${LB_URL}" \
+                            --username="${LB_USER}" \
+                            --password="${LB_PASS}" \
+                            diff \
                             --reference-url="offline:postgresql?snapshot=snapshots/baseline.snapshot.json" \
                             > drift-reports/drift.txt 2>&1 || true
                         cat drift-reports/drift.txt
-                        echo "=== Drift report saved to drift-reports/drift.txt ==="
                     else
-                        echo "=== No baseline snapshot found ==="
-                        echo "=== Run the Deploy job first to create baseline.snapshot.json ==="
+                        echo "=== No baseline snapshot found — run Deploy job first ==="
                     fi
                 '''
             }
