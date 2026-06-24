@@ -1,6 +1,6 @@
 @Library('ci-jenkins-shared-libraries@liquibase') _
 
-node('self-hosted') {
+node('built-in') {
     stage('Git Checkout') {
         checkout scm
     }
