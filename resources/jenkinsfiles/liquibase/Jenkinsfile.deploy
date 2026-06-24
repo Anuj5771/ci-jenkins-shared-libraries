@@ -1,29 +1,9 @@
-// =============================================================================
-//  Jenkinsfile.deploy
-//  Path in repo: resources/jenkinsfiles/liquibase/Jenkinsfile.deploy
-//
-//  Trigger:  Push to `liquibase` branch (GitHub Webhook → Push event)
-//  Job type: Pipeline Job
-//  SCM:      https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git
-//  Branch:   liquibase
-//  Script:   resources/jenkinsfiles/liquibase/Jenkinsfile.deploy
-//
-//  NOTE: Koi aur repo nahi chahiye. Jenkins workspace mein
-//        ci-jenkins-shared-libraries checkout hoti hai jisme
-//        liquibase/ folder already hai.
-// =============================================================================
-
 @Library('ci-jenkins-shared-libraries@liquibase') _
 
-// Concurrent builds band — ek waqt mein sirf ek deploy chalega
-properties([
-    disableConcurrentBuilds(abortPrevious: false)
-])
+properties([disableConcurrentBuilds(abortPrevious: false)])
 
 node('self-hosted') {
-
     stage('Git Checkout') {
-        echo "Checking out ci-jenkins-shared-libraries (liquibase branch)"
         checkout scm
     }
 
@@ -35,12 +15,12 @@ node('self-hosted') {
         ]) {
             dir("${WORKSPACE}/liquibase") {
                 sh '''
-                    echo "=== Pre-deploy Validation ==="
-                    export LIQUIBASE_URL="${LB_URL}"
-                    export LIQUIBASE_USERNAME="${LB_USER}"
-                    export LIQUIBASE_PASSWORD="${LB_PASS}"
-                    liquibase validate
-                    echo "=== Validation PASSED ==="
+                    liquibase \
+                        --url="${LB_URL}" \
+                        --username="${LB_USER}" \
+                        --password="${LB_PASS}" \
+                        --changelog-file=changelog/db.changelog-master.xml \
+                        validate
                 '''
             }
         }
@@ -54,12 +34,12 @@ node('self-hosted') {
         ]) {
             dir("${WORKSPACE}/liquibase") {
                 sh '''
-                    echo "=== Applying Database Migrations ==="
-                    export LIQUIBASE_URL="${LB_URL}"
-                    export LIQUIBASE_USERNAME="${LB_USER}"
-                    export LIQUIBASE_PASSWORD="${LB_PASS}"
-                    liquibase update
-                    echo "=== Migrations Applied Successfully ==="
+                    liquibase \
+                        --url="${LB_URL}" \
+                        --username="${LB_USER}" \
+                        --password="${LB_PASS}" \
+                        --changelog-file=changelog/db.changelog-master.xml \
+                        update
                 '''
             }
         }
@@ -73,15 +53,14 @@ node('self-hosted') {
         ]) {
             dir("${WORKSPACE}/liquibase") {
                 sh '''
-                    echo "=== Creating Baseline Snapshot (for drift detection) ==="
                     mkdir -p snapshots
-                    export LIQUIBASE_URL="${LB_URL}"
-                    export LIQUIBASE_USERNAME="${LB_USER}"
-                    export LIQUIBASE_PASSWORD="${LB_PASS}"
-                    liquibase snapshot \
+                    liquibase \
+                        --url="${LB_URL}" \
+                        --username="${LB_USER}" \
+                        --password="${LB_PASS}" \
+                        snapshot \
                         --snapshot-format=json \
                         --output-file=snapshots/baseline.snapshot.json
-                    echo "=== Snapshot saved to liquibase/snapshots/baseline.snapshot.json ==="
                 '''
             }
         }
