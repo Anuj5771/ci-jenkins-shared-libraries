@@ -2,7 +2,7 @@
 
 properties([pipelineTriggers([cron('H */6 * * *')])])
 
-node('self-hosted') {
+node('built-in') {
     stage('Git Checkout') {
         checkout scm
     }
