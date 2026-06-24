@@ -2,7 +2,7 @@
 
 properties([disableConcurrentBuilds(abortPrevious: false)])
 
-node('self-hosted') {
+node('built-in') {
     stage('Git Checkout') {
         checkout scm
     }
