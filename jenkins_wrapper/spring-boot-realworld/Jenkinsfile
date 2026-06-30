@@ -65,9 +65,10 @@ node {
     // PUBLISH ARTIFACT
     artifact_publish_check           : true,
     artifact_destination_type        : 'gcr',
-    docker_image_name                : 'spring-boot-realworld',
+    docker_image_name                : 'spring-boot-realworld-app',
     gcp_project_id                   : 'montra-490412',
     gcr_hostname                     : 'asia-south2-docker.pkg.dev',
+    gcr_repository                   : 'dev-app-images',
     // NOTIFICATION
     notification_enabled             : false
   ])

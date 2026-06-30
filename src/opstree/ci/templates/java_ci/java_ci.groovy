@@ -256,7 +256,8 @@ def call(Map step_params) {
                         artifact_s3_bucket_aws_region: "${step_params.artifact_s3_bucket_aws_region}",
                         // GCR parameters
                         gcp_project_id: "${step_params.gcp_project_id}",
-                        gcr_hostname: "${step_params.gcr_hostname}"
+                        gcr_hostname: "${step_params.gcr_hostname}",
+                        gcr_repository: "${step_params.gcr_repository}"
                     )
                 }
                 }

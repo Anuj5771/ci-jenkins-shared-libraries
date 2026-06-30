@@ -1,0 +1,48 @@
+@Library('ci-jenkins-shared-libraries@main') _
+def cipipeline = new pinelabs.cd.templates.eks.eks_deployment()
+// node('agent') {
+node {
+    cipipeline.call([
+
+    enable_jenkins_build_param_override: true,
+
+    // WORKSPACE MANAGEMENT
+    clean_workspace: true,
+    ignore_clean_workspace_failure: false,
+    delete_dirs: false,
+    clean_when_build_aborted: true,
+    clean_when_build_failed: true,
+    clean_when_not_built: true,
+    clean_when_build_succeed: true,
+    clean_when_build_unstable: true,
+
+    // VCS MANAGEMENT
+    repo_https_url: 'https://bitbucket.org/qwikteam/cplus-helm-charts.git',
+    repo_branch: 'opstree',
+    repo_url_type: 'http',
+    jenkins_git_creds_id: 'cplus-helm-chart-git-token',
+
+    // Argocd
+    perform_argocd_deployment: true,
+    argocd_credential_id: 'argocd-password',
+    argocd_server_env_name: 'ARGOCD_URL',
+    double_source: true,
+    values_repo_url: "https://github.com/PineLabs-Credit/app-configs.git",
+    values_repo_revision: "opstree",
+    dry_run: true,
+
+    chart_source: 's3',
+    s3_bucket: 'cplus-helm-charts',
+
+    require_manual_approval: true,
+    manual_approval_message: "Reviewed Dry Run Stage Output and Ready to Proceed ? ",
+    manual_approval_allowed_users: ["udhay", "Vaibhav"],
+
+
+    // Notification
+    notification_enabled: true,
+    notification_channel: 'outlook',
+    recipients_email_ids: 'mahesh.m14@pinelabs.com',
+    from_email_id: 'udhay.singh@pinelabs.com'
+  ])
+}
