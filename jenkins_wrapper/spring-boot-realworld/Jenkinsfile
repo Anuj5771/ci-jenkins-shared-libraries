@@ -1,6 +1,6 @@
 @Library('ci-jenkins-shared-libraries@main') _
 def cipipeline = new opstree.ci.templates.java_ci.java_ci()
-node {
+node('agent') {
   cipipeline.call([
     // WORKSPACE MANAGEMENT
     clean_workspace                  : true,
@@ -14,7 +14,7 @@ node {
     // VCS MANAGEMENT
     repo_https_url                   : "https://github.com/priyanshu499-ops/spring-boot-realworld-example-app.git",
     repo_ssh_url                     : "https://github.com/priyanshu499-ops/spring-boot-realworld-example-app.git",
-    repo_branch                      : "master",
+    repo_branch                      : params.branch,
     repo_url_type                    : "http",
     jenkins_git_creds_id             : "github-token",
     source_code_path                 : "/spring-boot-realworld-example-app",
