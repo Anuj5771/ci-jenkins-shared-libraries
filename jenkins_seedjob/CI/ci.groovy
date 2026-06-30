@@ -9,7 +9,7 @@ def ciJobs = [
 
 ciJobs.each { jobName, config ->
     pipelineJob("CI/${jobName}") {
-        displayName("${jobName} — CI")
+        displayName("${jobName}")
         description("Continuous Integration pipeline for ${jobName}")
         logRotator {
             numToKeep(10)
