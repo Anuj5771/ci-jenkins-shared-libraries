@@ -1,6 +1,7 @@
 @Library('ci-jenkins-shared-libraries@main') _
 def cipipeline = new opstree.ci.templates.java_ci.java_ci()
-node('agent') {
+// node('agent') {
+node {
   cipipeline.call([
     // WORKSPACE MANAGEMENT
     clean_workspace                  : true,
