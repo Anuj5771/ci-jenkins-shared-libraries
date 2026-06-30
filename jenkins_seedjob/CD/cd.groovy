@@ -1,4 +1,4 @@
-def ciJobs = [
+def cdJobs = [
     'spring-boot-realworld': [
         url        : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
         credentials: 'github-token',
@@ -7,8 +7,8 @@ def ciJobs = [
     ]
 ]
 
-ciJobs.each { jobName, config ->
-    pipelineJob("CI/${jobName}") {
+cdJobs.each { jobName, config ->
+    pipelineJob("CD/${jobName}") {
         displayName("${jobName}")
         description("Continuous Integration pipeline for ${jobName}")
         logRotator {
