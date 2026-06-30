@@ -20,7 +20,6 @@ node {
     jenkins_git_creds_id             : "github-token",
     source_code_path                 : "/spring-boot-realworld-example-app",
     // DEPENDENCY SCANNING
-    // DEPENDENCY SCANNING
     dependency_check                          : 'true',
     dependency_scan_tool                      : 'owasp',
     owasp_project_name                        : 'spring-boot-gradle',  
@@ -69,7 +68,6 @@ node {
     docker_image_name                : 'spring-boot-realworld',
     gcp_project_id                   : 'montra-490412',
     gcr_hostname                     : 'asia-south2-docker.pkg.dev',
-    gcp_credentials_id               : 'gcp-service-account-key',
     // NOTIFICATION
     notification_enabled             : false
   ])
