@@ -15,7 +15,7 @@ ciJobs.each { jobName, config ->
             numToKeep(10)
         }
         parameters {
-            stringParam('BRANCH', config.branch, 'Branch to build')
+            stringParam('BRANCH', 'master', 'Branch to build')
         }
         definition {
             cpsScm {
