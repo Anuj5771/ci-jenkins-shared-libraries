@@ -13,11 +13,11 @@ def call(Map step_params) {
 
         def workspace             = new workspace_management()
         def vcs                   = new git_management()
-        def credscan              = new vulnerability_scanning()
+        def credscan              = new cred_scanning()
         def dependencyscan        = new dependency_scanning()
         def static_code_analysis  = new static_code_analysis()
         def unittest              = new junit()
-        def securityscan          = new snyk_scanning()
+        // snyk_scanning removed (file deleted)
         def build_dockerfile      = new build_dockerfile()
         def coverage              = new codecoverage()
         def publish               = new publish_artifact()
@@ -26,8 +26,8 @@ def call(Map step_params) {
         def image_size_validator  = new image_size_validator()
         def notify                = new notify()
         def build                 = new build_artifact()
-        def packer                = new build_packer_ami()
-        def jira                  = new jira_management()
+        // build_packer_ami removed (file deleted)
+        // jira_management removed (file deleted)
 
         def repo_url
         if (get_params_value(enableOverride, step_params, 'repo_url_type') == 'http') {
@@ -271,18 +271,10 @@ def call(Map step_params) {
             throw e
         } finally {
                 // This block will always execute
-                if (get_params_value(enableOverride, step_params, 'enable_jira') != null && get_params_value(enableOverride, step_params, 'enable_jira').toBoolean()) {
-                jira.jira_factory(
-                        enable_jira: "${get_params_value(enableOverride, step_params, 'enable_jira')}",
-                        jenkins_jira_url_env_name: "${get_params_value(enableOverride, step_params, 'jenkins_jira_url_env_name')}",
-                        jenkins_jira_creds_id: "${get_params_value(enableOverride, step_params, 'jenkins_jira_creds_id')}",
-                        jira_ticket_id: "${params.jira_ticket_id}",
-                        fail_job_if_jira_operation_failed: "${get_params_value(enableOverride, step_params, 'fail_job_if_jira_operation_failed')}",
-                        build_status: currentBuild.currentResult,
-                        console_log_url: "${env.BUILD_URL}console",
-                        enable_buildlogurl_in_jiracomment: "${get_params_value(enableOverride, step_params, 'enable_buildlogurl_in_jiracomment')}",
-                        )
-                }
+                // jira_management removed (file deleted) - jira block disabled
+                // if (get_params_value(enableOverride, step_params, 'enable_jira') != null && get_params_value(enableOverride, step_params, 'enable_jira').toBoolean()) {
+                //     jira.jira_factory(...)
+                // }
 
                 if (currentBuild.currentResult == 'SUCCESS' && get_params_value(enableOverride, step_params, 'enable_trigger_cd_pipeline') != null && get_params_value(enableOverride, step_params, 'enable_trigger_cd_pipeline').toBoolean() ) {
                         def parser  = new parser()
