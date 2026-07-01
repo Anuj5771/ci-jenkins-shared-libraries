@@ -3,6 +3,8 @@ node {
         def imageTag = params.image_tag ?: 'latest'
         def gitopsRepo = 'https://github.com/priyanshu499-ops/montra-gitops-manifests.git'
         def valuesFile = 'applications/dev/spring-boot-realworld-values.yaml'
+        def argocdServer = '10.10.64.8'
+        def argocdAppName = 'spring-boot-realworld'
 
         stage('Checkout GitOps Repo') {
             git url: gitopsRepo, branch: 'main', credentialsId: 'github-token'
@@ -27,8 +29,14 @@ node {
             }
         }
 
-        stage('ArgoCD Sync Status') {
-            echo "ArgoCD auto-sync enabled — deployment will sync automatically within a few seconds."
+        stage('Trigger ArgoCD Sync') {
+            withCredentials([usernamePassword(credentialsId: 'argocd-creds', usernameVariable: 'ARGOCD_USER', passwordVariable: 'ARGOCD_PASS')]) {
+                sh """
+                    argocd login ${argocdServer} --username \$ARGOCD_USER --password \$ARGOCD_PASS --insecure
+                    argocd app sync ${argocdAppName} --prune
+                    argocd app wait ${argocdAppName} --health --timeout 180
+                """
+            }
         }
     }
 }
