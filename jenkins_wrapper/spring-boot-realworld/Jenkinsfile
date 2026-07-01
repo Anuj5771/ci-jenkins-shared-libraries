@@ -69,7 +69,14 @@ node {
     gcp_project_id                   : 'montra-490412',
     gcr_hostname                     : 'asia-south2-docker.pkg.dev',
     gcr_repository                   : 'dev-app-images',
+
+    //Deployment
     enable_trigger_cd_pipeline       : true,
+    trigger_cd_pipeline_path         : "CD/spring-boot-realworld",
+    image_tag_build_param            : 'image_tag',
+    cd_environment_build_param       : 'env',
+    app_name_build_param             : 'app_name',
+    env                              : params.ENVIRONMENT,
     // NOTIFICATION
     notification_enabled             : false
   ])
