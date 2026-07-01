@@ -285,21 +285,34 @@ def call(Map step_params) {
                 // }
 
                 if (currentBuild.currentResult == 'SUCCESS' && get_params_value(enableOverride, step_params, 'enable_trigger_cd_pipeline') != null && get_params_value(enableOverride, step_params, 'enable_trigger_cd_pipeline').toBoolean() ) {
-                        def parser  = new parser()
-                        def repo_dir = parser.fetch_git_repo_name('repo_url':"${repo_url}")
+                        try {
+                            def parser  = new parser()
+                            def repo_dir = parser.fetch_git_repo_name('repo_url':"${repo_url}")
 
-                        def docker_image_tag = sh(
-                        script: """git config --global --add safe.directory ${WORKSPACE}/${repo_dir} && \
-                                   cd ${WORKSPACE}/${repo_dir} && git rev-parse --short HEAD""",
-                        returnStdout: true
-                    ).trim()
+                            def docker_image_tag = sh(
+                                script: """git config --global --add safe.directory ${WORKSPACE}/${repo_dir} && \
+                                           cd ${WORKSPACE}/${repo_dir} && git rev-parse --short HEAD""",
+                                returnStdout: true
+                            ).trim()
 
-                        build job: get_params_value(enableOverride, step_params, 'trigger_cd_pipeline_path'),
-                    parameters: [
-                        string(name: get_params_value(enableOverride, step_params, 'image_tag_build_param'), value: docker_image_tag),
-                        booleanParam(name: get_params_value(enableOverride, step_params, 'enable_jira_build_param'), value:  "${get_params_value(enableOverride, step_params, 'enable_jira')}"),
-                        string(name: get_params_value(enableOverride, step_params, 'jira_ticket_id_build_param'), value: "${params.jira_ticket_id}")
-                    ], wait: false
+                            def cd_params = [
+                                string(name: get_params_value(enableOverride, step_params, 'image_tag_build_param'), value: docker_image_tag)
+                            ]
+
+                            def enableJira = get_params_value(enableOverride, step_params, 'enable_jira')?.toBoolean() ?: false
+                            if (enableJira) {
+                                cd_params += [
+                                    booleanParam(name: get_params_value(enableOverride, step_params, 'enable_jira_build_param'), value: true),
+                                    string(name: get_params_value(enableOverride, step_params, 'jira_ticket_id_build_param'), value: "${params.jira_ticket_id}")
+                                ]
+                            }
+
+                            build job: get_params_value(enableOverride, step_params, 'trigger_cd_pipeline_path'),
+                                parameters: cd_params,
+                                wait: false
+                        } catch (Exception triggerEx) {
+                            echo "WARNING: CD pipeline trigger failed: ${triggerEx.getMessage()}. Continuing with workspace cleanup."
+                        }
                 }
 
                 if (get_params_value(enableOverride, step_params, 'notification_enabled') != null && get_params_value(enableOverride, step_params, 'notification_enabled').toBoolean()) {
