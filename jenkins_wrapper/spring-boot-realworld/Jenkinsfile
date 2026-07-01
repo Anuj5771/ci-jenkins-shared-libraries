@@ -69,6 +69,7 @@ node {
     gcp_project_id                   : 'montra-490412',
     gcr_hostname                     : 'asia-south2-docker.pkg.dev',
     gcr_repository                   : 'dev-app-images',
+    enable_trigger_cd_pipeline       : true,
     // NOTIFICATION
     notification_enabled             : false
   ])
