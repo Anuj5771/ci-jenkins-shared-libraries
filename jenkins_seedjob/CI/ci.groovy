@@ -16,6 +16,7 @@ ciJobs.each { jobName, config ->
         }
         parameters {
             stringParam('BRANCH', 'master', 'Branch to build')
+            stringParam('ENVIRONMENT', 'dev', 'Environment')
         }
         definition {
             cpsScm {
