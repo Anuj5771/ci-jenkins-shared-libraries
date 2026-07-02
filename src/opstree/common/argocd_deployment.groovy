@@ -41,6 +41,9 @@ def eks_deployment(Map step_params) {
             export XDG_CONFIG_HOME=\$(pwd)/.config
 
             if [ "${dry_run}" = "true" ]; then
+                echo "[DRY-RUN] Disabling auto-sync to prevent immediate deployment..."
+                argocd app set ${app_name} --sync-policy none
+
                 echo "[DRY-RUN] Setting new image tag: ${params.image_tag}"
                 argocd app set ${app_name} --helm-set image.tag=${params.image_tag}
                 sleep 10
@@ -51,11 +54,13 @@ def eks_deployment(Map step_params) {
                 echo "=== DRY-RUN Diff Complete ==="
             else
                 echo "[DEPLOY] Updating image tag: ${params.image_tag}"
+                argocd app set ${app_name} --sync-policy none
                 argocd app set ${app_name} --helm-set image.tag=${params.image_tag}
                 echo "[INFO] App definition updated. Please sync manually from ArgoCD UI."
             fi
             """
         }
+
         else {
             logger.logger('msg':'Running ArgoCD operation (no image tag)...', 'level':'INFO')
             sh """
