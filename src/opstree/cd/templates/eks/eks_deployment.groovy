@@ -42,7 +42,6 @@ def call(Map step_params) {
                                 perform_argocd_deployment: "${get_params_value(enableOverride, step_params, 'perform_argocd_deployment')}",
                                 repo_url: "${repo_url}",
                                 app_name: "${get_params_value(enableOverride, step_params, 'app_name')}",
-                                argocd_project: "${get_params_value(enableOverride, step_params, 'argocd_project')}",
                                 argocd_credential_id: "${get_params_value(enableOverride, step_params, 'argocd_credential_id')}",
                                 argocd_server_env_name: "${get_params_value(enableOverride, step_params, 'argocd_server_env_name')}",
                                 eks_api_endpoint_env_name: "${get_params_value(enableOverride, step_params, 'eks_api_endpoint_env_name')}",
@@ -50,7 +49,10 @@ def call(Map step_params) {
                                 helm_chart_path: "${get_params_value(enableOverride, step_params, 'deployment_strategy')}",
                                 values_file_path: "${get_params_value(enableOverride, step_params, 'values_file_path')}",
                                 prune_post_deployment: "${get_params_value(enableOverride, step_params, 'prune_post_deployment')}",
-                                repo_branch: "${get_params_value(enableOverride, step_params, 'repo_branch')}"
+                                repo_branch: "${get_params_value(enableOverride, step_params, 'repo_branch')}",
+                                source_code_path: "${get_params_value(enableOverride, step_params, 'source_code_path')}",
+                                dry_run: get_params_value(enableOverride, step_params, 'dry_run'),
+                                perform_health_check: get_params_value(enableOverride, step_params, 'perform_health_check')
                         )
             }
 } catch (Exception e) {
