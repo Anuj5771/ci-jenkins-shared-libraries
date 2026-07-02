@@ -1,42 +1,48 @@
+@Library('ci-jenkins-shared-libraries@main') _
+def cipipeline = new opstree.cd.templates.eks.eks_deployment()
 node {
-    ansiColor('xterm') {
-        def imageTag = params.image_tag ?: 'latest'
-        def gitopsRepo = 'https://github.com/priyanshu499-ops/montra-gitops-manifests.git'
-        def valuesFile = 'applications/dev/spring-boot-realworld-values.yaml'
-        def argocdServer = '10.10.64.8'
-        def argocdAppName = 'spring-boot-realworld'
+    env.ARGOCD_URL = '10.10.64.8'
 
-        stage('Checkout GitOps Repo') {
-            git url: gitopsRepo, branch: 'main', credentialsId: 'github-token'
-        }
+    cipipeline.call([
 
-        stage('Update Image Tag') {
-            sh """
-                sed -i 's|tag: .*|tag: "${imageTag}"|' ${valuesFile}
-                cat ${valuesFile}
-            """
-        }
+    enable_jenkins_build_param_override: true,
 
-        stage('Commit & Push') {
-            withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
-                sh """
-                    git config user.email "jenkins@montra.local"
-                    git config user.name "Jenkins CD"
-                    git add ${valuesFile}
-                    git commit -m "deploy: spring-boot-realworld image tag ${imageTag}" || echo "No changes to commit"
-                    git push https://\${GIT_USER}:\${GIT_TOKEN}@github.com/priyanshu499-ops/montra-gitops-manifests.git main
-                """
-            }
-        }
+    // WORKSPACE MANAGEMENT
+    clean_workspace: true,
+    ignore_clean_workspace_failure: false,
+    delete_dirs: false,
+    clean_when_build_aborted: true,
+    clean_when_build_failed: true,
+    clean_when_not_built: true,
+    clean_when_build_succeed: true,
+    clean_when_build_unstable: true,
 
-        stage('Trigger ArgoCD Sync') {
-            withCredentials([usernamePassword(credentialsId: 'argocd-creds', usernameVariable: 'ARGOCD_USER', passwordVariable: 'ARGOCD_PASS')]) {
-                sh """
-                    argocd login ${argocdServer} --username \$ARGOCD_USER --password \$ARGOCD_PASS --insecure
-                    argocd app sync ${argocdAppName} --prune
-                    argocd app wait ${argocdAppName} --health --timeout 180
-                """
-            }
-        }
-    }
+    // VCS MANAGEMENT
+    repo_https_url: 'https://github.com/priyanshu499-ops/montra-gitops-manifests.git',
+    repo_branch: 'main',
+    repo_url_type: 'http',
+    jenkins_git_creds_id: 'github-token',
+    source_code_path: '',
+
+    // Argocd
+    perform_argocd_deployment: true,
+    app_name: 'spring-boot-realworld',
+    argocd_credential_id: 'argocd-cred',
+    argocd_server_env_name: 'ARGOCD_URL',
+    deployment_strategy: '.',
+    values_file_path: 'applications/dev/spring-boot-realworld-values.yaml',
+    prune_post_deployment: true,
+    perform_health_check: false,
+
+    dry_run: false,
+    require_manual_approval: true,
+    manual_approval_message: "Reviewed Dry Run Stage Output and Ready to Proceed ? ",
+    manual_approval_allowed_users: ["priyanshu"],
+
+    // Notification
+    notification_enabled: false,
+    notification_channel: 'googlechat',
+    recipients_email_ids: 'priaysnhu.yadav@opstree.com',
+    from_email_id: 'priaysnhu.yadav@opstree.com'
+  ])
 }
