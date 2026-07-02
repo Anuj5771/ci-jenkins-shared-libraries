@@ -16,7 +16,7 @@ def call(Map step_params) {
         argocd = new argocd_deployment()
         vcs = new git_management()
         notify = new notify()
-        jira = new jira_management()
+        //jira = new jira_management()
 
         if (get_params_value(enableOverride, step_params, 'repo_url_type') == 'http') {
                 repo_url = "${get_params_value(enableOverride, step_params, 'repo_https_url')}"
