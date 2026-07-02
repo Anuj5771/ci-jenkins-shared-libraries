@@ -39,7 +39,7 @@ node {
     manual_approval_message: "Reviewed Dry Run Stage Output and Ready to Proceed ? ",
     manual_approval_allowed_users: ["priyanshu"],
 
-    // Notification
+    //  Notification
     notification_enabled: false,
     notification_channel: 'googlechat',
     recipients_email_ids: 'priaysnhu.yadav@opstree.com',
