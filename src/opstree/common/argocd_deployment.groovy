@@ -9,118 +9,101 @@ def deployment_factory(Map step_params) {
     if (step_params.perform_argocd_deployment == 'true') {
         eks_deployment(step_params)
     }
-  else {
+    else {
         logger.logger('msg':"${step_params.perform_argocd_deployment} No valid option selected for Deplying application via Argocd. Please mention correct values.", 'level':'WARN')
-  }
+    }
 }
 
 def eks_deployment(Map step_params) {
     logger = new logger()
-    parser = new parser()
 
-    logger.logger('msg':'Starting ArgoCD Deployment Step', 'level':'INFO')
-
-    def app_name             = "${step_params.app_name}"
-    def repo_url             = "${step_params.repo_url}"
-    def argocd_credential_id = "${step_params.argocd_credential_id}"
+    def app_name               = "${step_params.app_name}"
+    def argocd_credential_id   = "${step_params.argocd_credential_id}"
     def argocd_server_env_name = "${step_params.argocd_server_env_name}"
-    def argocd_server_url    = env[argocd_server_env_name]
-    def prune_post_deployment = "${step_params.prune_post_deployment}"
-    def helm_chart_path      = "${step_params.helm_chart_path}"
-    def values_file_path     = "${step_params.values_file_path}"
-    def repo_branch          = "${step_params.repo_branch}"
-    def source_code_path     = step_params.source_code_path ?: ''
-    def dry_run              = step_params.dry_run?.toString()?.toBoolean() ?: false
+    def argocd_server_url      = env[argocd_server_env_name]
+    def prune_post_deployment  = "${step_params.prune_post_deployment}"
+    def perform_health_check   = step_params.perform_health_check?.toString()?.toBoolean() ?: false
+    def dry_run                = step_params.dry_run?.toString()?.toBoolean() ?: false
 
-    // Default to in-cluster if eks_api_endpoint_env_name is not provided
-    def eksEnvName     = step_params.eks_api_endpoint_env_name
-    def eks_api_endpoint = (eksEnvName && env[eksEnvName]) ? env[eksEnvName] : 'https://kubernetes.default.svc'
+    withCredentials([string(credentialsId: argocd_credential_id, variable: 'PASSWORD')]) {
 
-    def repo_dir = parser.fetch_git_repo_name('repo_url':"${repo_url}") + source_code_path
+        logger.logger('msg':'Login into ArgoCD', 'level':'INFO')
+        sh """
+        #!/bin/bash
+        export XDG_CONFIG_HOME=\$(pwd)/.config
+        argocd login ${argocd_server_url} --username admin --password \$PASSWORD --insecure
+        """
 
-    dir("${WORKSPACE}/${repo_dir}") {
-        withCredentials([string(credentialsId: argocd_credential_id, variable: 'PASSWORD')]) {
-            logger.logger('msg':'Login into ArgoCD', 'level':'INFO')
+        if (params.image_tag) {
+            logger.logger('msg':'Setting image tag and running ArgoCD operation...', 'level':'INFO')
             sh """
             #!/bin/bash
             export XDG_CONFIG_HOME=\$(pwd)/.config
-            argocd login ${argocd_server_url} --username admin --password \$PASSWORD --insecure
+
+            if [ "${dry_run}" = "true" ]; then
+                echo "[DRY-RUN] Setting new image tag: ${params.image_tag}"
+                argocd app set ${app_name} --helm-set image.tag=${params.image_tag}
+                sleep 10
+
+                echo "=== DRY-RUN: Showing changes that will be applied ==="
+                argocd app get ${app_name} --refresh > /dev/null || true
+                PAGER="" argocd app diff ${app_name} --exit-code=false
+                echo "=== DRY-RUN Diff Complete ==="
+            else
+                echo "[DEPLOY] Updating image tag: ${params.image_tag}"
+                argocd app set ${app_name} --helm-set image.tag=${params.image_tag}
+                echo "[INFO] App definition updated. Please sync manually from ArgoCD UI."
+            fi
             """
+        }
+        else {
+            logger.logger('msg':'Running ArgoCD operation (no image tag)...', 'level':'INFO')
+            sh """
+            #!/bin/bash
+            export XDG_CONFIG_HOME=\$(pwd)/.config
 
-            if (dry_run) {
-                // ── DRY-RUN: Create/update app definition (no auto-sync) and show diff ──
-                logger.logger('msg':'[DRY-RUN] Updating ArgoCD app definition and showing diff...', 'level':'INFO')
-                if (params.image_tag) {
-                    sh """
-                    #!/bin/bash
-                    export XDG_CONFIG_HOME=\$(pwd)/.config
-                    argocd app create ${app_name} \\
-                        --repo ${repo_url} \\
-                        --path ${helm_chart_path} \\
-                        --values ${values_file_path} \\
-                        --dest-server ${eks_api_endpoint} \\
-                        --revision ${repo_branch} \\
-                        --upsert \\
-                        --helm-set image.tag=${params.image_tag}
+            if [ "${dry_run}" = "true" ]; then
+                echo "=== DRY-RUN: Showing changes that will be applied ==="
+                argocd app get ${app_name} --refresh > /dev/null || true
+                PAGER="" argocd app diff ${app_name} --exit-code=false
+                echo "=== DRY-RUN Diff Complete ==="
+            else
+                echo "[INFO] App definition already up to date. Please sync manually from ArgoCD UI."
+            fi
+            """
+        }
 
-                    sleep 5
-                    echo "=== DRY-RUN: Changes that will be applied ==="
-                    argocd app get ${app_name} --refresh > /dev/null || true
-                    PAGER="" argocd app diff ${app_name} --exit-code=false
-                    echo "=== DRY-RUN Complete ==="
-                    """
-                } else {
-                    sh """
-                    #!/bin/bash
-                    export XDG_CONFIG_HOME=\$(pwd)/.config
-                    argocd app create ${app_name} \\
-                        --repo ${repo_url} \\
-                        --path ${helm_chart_path} \\
-                        --values ${values_file_path} \\
-                        --dest-server ${eks_api_endpoint} \\
-                        --revision ${repo_branch} \\
-                        --upsert
+        if (!dry_run && perform_health_check) {
+            logger.logger('msg':'Checking Application Health check. Please wait for sometime...', 'level':'INFO')
+            sh """
+                #!/bin/bash
+                export XDG_CONFIG_HOME=\$(pwd)/.config
+                MAX_RETRIES=5
+                RETRY_INTERVAL=30
+                RETRIES=0
 
-                    sleep 5
-                    echo "=== DRY-RUN: Changes that will be applied ==="
-                    argocd app get ${app_name} --refresh > /dev/null || true
-                    PAGER="" argocd app diff ${app_name} --exit-code=false
-                    echo "=== DRY-RUN Complete ==="
-                    """
-                }
-                logger.logger('msg':'[DRY-RUN] Diff complete. Awaiting manual approval before actual deployment.', 'level':'INFO')
+                while [ \$RETRIES -lt \$MAX_RETRIES ]; do
+                    APP_STATUS=\$(argocd app get ${app_name} --output json | jq -r '.status.health.status')
+                    echo "Application health status: \$APP_STATUS"
 
-            } else {
-                // ── ACTUAL DEPLOY: Create/update app definition. User syncs manually from ArgoCD ──
-                logger.logger('msg':'Updating ArgoCD application definition (no auto-sync)...', 'level':'INFO')
-                if (params.image_tag) {
-                    sh """
-                    #!/bin/bash
-                    export XDG_CONFIG_HOME=\$(pwd)/.config
-                    argocd app create ${app_name} \\
-                        --repo ${repo_url} \\
-                        --path ${helm_chart_path} \\
-                        --values ${values_file_path} \\
-                        --dest-server ${eks_api_endpoint} \\
-                        --revision ${repo_branch} \\
-                        --upsert \\
-                        --helm-set image.tag=${params.image_tag}
-                    """
-                } else {
-                    sh """
-                    #!/bin/bash
-                    export XDG_CONFIG_HOME=\$(pwd)/.config
-                    argocd app create ${app_name} \\
-                        --repo ${repo_url} \\
-                        --path ${helm_chart_path} \\
-                        --values ${values_file_path} \\
-                        --dest-server ${eks_api_endpoint} \\
-                        --revision ${repo_branch} \\
-                        --upsert
-                    """
-                }
-                logger.logger('msg':'ArgoCD app definition updated. Please sync manually from ArgoCD UI.', 'level':'INFO')
-            }
+                    if [ "\$APP_STATUS" = "Healthy" ]; then
+                        echo "Application is Healthy."
+                        exit 0
+                    else
+                        echo "Application is not Healthy yet. Retrying in \${RETRY_INTERVAL} seconds..."
+                        sleep \${RETRY_INTERVAL}
+                        RETRIES=\$((RETRIES + 1))
+                    fi
+                done
+
+                echo "Application did not become healthy within the expected time."
+                exit 1
+                """
+            logger.logger('msg':'Application Deployed successfully', 'level':'INFO')
+        } else if (dry_run) {
+            logger.logger('msg':'Dry run completed. Skipping health check.', 'level':'INFO')
+        } else {
+            logger.logger('msg':'Health check skipped (perform_health_check=false).', 'level':'INFO')
         }
     }
 }
