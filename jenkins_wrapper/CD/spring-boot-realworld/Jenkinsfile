@@ -29,7 +29,7 @@ node {
     app_name: 'spring-boot-realworld',
     argocd_credential_id: 'argocd-cred',
     argocd_server_env_name: 'ARGOCD_URL',
-    deployment_strategy: '.',
+    deployment_strategy: 'helm',
     values_file_path: 'applications/dev/spring-boot-realworld-values.yaml',
     prune_post_deployment: true,
     perform_health_check: false,
