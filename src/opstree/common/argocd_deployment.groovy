@@ -17,11 +17,11 @@ def deployment_factory(Map step_params) {
 def eks_deployment(Map step_params) {
     logger = new logger()
 
-
-    def app_type                = "${step_params.app_type}"
-    def app_env                 = "${step_params.app_env}"
-    def argocd_project          = "${app_type}-${app_env}"
-    def argocd_app_name         = "${step_params.app_name}-${app_env}"
+    // --- previously missing / added from pinelabs.common ---
+    def app_type                = step_params.app_type ? "${step_params.app_type}" : ""
+    def app_env                 = step_params.app_env ? "${step_params.app_env}" : ""
+    def argocd_project          = (app_type && app_env) ? "${app_type}-${app_env}" : ""
+    def argocd_app_name         = app_env ? "${step_params.app_name}-${app_env}" : "${step_params.app_name}"
     // ---------------------------------------------------------
 
     def app_name                = "${step_params.app_name}"
@@ -41,7 +41,8 @@ def eks_deployment(Map step_params) {
         argocd login ${argocd_server_url} --username admin --password \$PASSWORD --insecure
         """
 
-        logger.logger('msg':"Target Application: ${argocd_app_name} | Project: ${argocd_project}", 'level':'INFO')
+        def projectLogSuffix = argocd_project ? " | Project: ${argocd_project}" : ""
+        logger.logger('msg':"Target Application: ${argocd_app_name}${projectLogSuffix}", 'level':'INFO')
 
         if (params.image_tag) {
             logger.logger('msg':'Setting image tag and running ArgoCD operation...', 'level':'INFO')
