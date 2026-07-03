@@ -26,6 +26,8 @@ node {
     // Argocd
     perform_argocd_deployment: true,
     app_name: 'simple-nodejs-app',
+    app_type: 'apps',
+    app_env: 'dev',
     argocd_credential_id: 'argocd-cred',
     argocd_server_env_name: 'ARGOCD_URL',
     deployment_strategy: 'helm',
