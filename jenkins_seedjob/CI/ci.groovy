@@ -5,6 +5,12 @@ def ciJobs = [
         branch     : 'main',
         scriptPath : 'jenkins_wrapper/CI/spring-boot-realworld/Jenkinsfile'
     ]
+    'simple-nodejs-app': [
+        url        : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
+        credentials: 'github-token',
+        branch     : 'main',
+        scriptPath : 'jenkins_wrapper/CI/spring-boot-realworld/Jenkinsfile'
+    ]
 ]
 
 ciJobs.each { jobName, config ->
