@@ -17,12 +17,14 @@ def deployment_factory(Map step_params) {
 def eks_deployment(Map step_params) {
     logger = new logger()
 
-    // --- previously missing / added from pinelabs.common ---
-    def app_type                = step_params.app_type ? "${step_params.app_type}" : ""
-    def app_env                 = step_params.app_env ? "${step_params.app_env}" : ""
+    // --- resolve app_type / app_env (null-safe) ---
+    def raw_app_type            = step_params.app_type?.toString()?.trim()
+    def raw_app_env             = step_params.app_env?.toString()?.trim()
+    def app_type                = (raw_app_type && raw_app_type != 'null') ? raw_app_type : ""
+    def app_env                 = (raw_app_env  && raw_app_env  != 'null') ? raw_app_env  : ""
     def argocd_project          = (app_type && app_env) ? "${app_type}-${app_env}" : ""
     def argocd_app_name         = app_env ? "${step_params.app_name}-${app_env}" : "${step_params.app_name}"
-    // ---------------------------------------------------------
+    // ----------------------------------------------
 
     def app_name                = "${step_params.app_name}"
     def argocd_credential_id    = "${step_params.argocd_credential_id}"
