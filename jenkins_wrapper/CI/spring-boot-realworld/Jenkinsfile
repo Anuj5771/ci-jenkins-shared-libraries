@@ -18,7 +18,7 @@ node {
     repo_branch                      : params.BRANCH ?: "main",
     repo_url_type                    : "http",
     jenkins_git_creds_id             : "github-token",
-    source_code_path                 : "/spring-boot-realworld-example-app",
+    source_code_path                 : "",
     // DEPENDENCY SCANNING
     dependency_check                          : 'true',
     dependency_scan_tool                      : 'owasp',
