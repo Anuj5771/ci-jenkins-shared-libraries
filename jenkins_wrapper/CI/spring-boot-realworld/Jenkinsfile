@@ -15,7 +15,7 @@ node {
     // VCS MANAGEMENT
     repo_https_url                   : "https://github.com/priyanshu499-ops/spring-boot-realworld-example-app.git",
     repo_ssh_url                     : "https://github.com/priyanshu499-ops/spring-boot-realworld-example-app.git",
-    repo_branch                      : params.BRANCH,"main",
+    repo_branch                      : params.BRANCH ?: "main",
     repo_url_type                    : "http",
     jenkins_git_creds_id             : "github-token",
     source_code_path                 : "/spring-boot-realworld-example-app",
@@ -47,7 +47,11 @@ node {
     fail_job_if_unit_issue_detected  : 'false',    // must be String 'false', not boolean false
     unit_test_reports_path           : '**/build/test-results/test/*.xml',
     // STATIC CODE ANALYSIS
-    static_code_analysis_check       : false,
+    static_code_analysis_check              : true,
+    codebase_to_scan_directory              : '.',
+    path_to_sonar_properties                : 'sonar-project.properties',
+    fail_job_if_analysis_returned_exception : 'false',
+    jenkins_sonarqube_token_creds_id        : 'SONARQUBE_TOKEN',
     // BUILD DOCKERFILE
     perform_build_dockerfile         : true,
     dockerfile_location              : '/Dockerfile',

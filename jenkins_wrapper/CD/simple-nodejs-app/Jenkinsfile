@@ -31,7 +31,7 @@ node {
     argocd_credential_id: 'argocd-cred',
     argocd_server_env_name: 'ARGOCD_URL',
     deployment_strategy: 'helm',
-    values_file_path: '../applications/dev/simple-nodejs-app-values.yaml',
+    values_file_path: '../applications/dev/simple-nodejs-values.yaml',
     prune_post_deployment: true,
     perform_health_check: false,
 
