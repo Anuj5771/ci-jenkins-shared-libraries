@@ -25,6 +25,7 @@ node {
     owasp_project_name                        : 'simple-nodejs-app',  
     owasp_report_publish                      : true,
     owasp_report_format                       : 'html',
+    nvd_api_key_creds_id                      : 'NVD_API_KEY',
     fail_job_if_dependency_returned_exception : false,
     // CREDS SCANNING (GITLEAKS)
     gitleaks_check                   : true,
