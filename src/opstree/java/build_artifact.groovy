@@ -74,6 +74,9 @@ def build_artifact(Map step_params) {
             } else if (java_version == '17') {
                 sh """ docker run --rm -v ~/.gradle:/root/.gradle -v ${WORKSPACE}/${repo_dir}:/app/ -w /app gradle:7.5-jdk17 sh -c "cd /app/${gradle_build_file_location} && gradle ${gradle_command}" """
                 logger.logger('msg':'Build successful', 'level':'INFO')
+            } else if (java_version == '21') {
+                sh """ docker run --rm -v ~/.gradle:/root/.gradle -v ${WORKSPACE}/${repo_dir}:/app/ -w /app gradle:8.14.4-jdk21 sh -c "cd /app/${gradle_build_file_location} && gradle ${gradle_command}" """
+                logger.logger('msg':'Build successful', 'level':'INFO')
             }
         } else {
             logger.logger('msg':"Choose appropriate build tool!!! Build Failed Error Details: ${e}", 'level':'ERROR')

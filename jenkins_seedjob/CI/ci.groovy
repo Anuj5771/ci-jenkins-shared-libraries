@@ -22,6 +22,18 @@ def ciJobs = [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
         ]
+    ],
+    'auth-service': [
+        url          : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
+        credentials  : 'github-token',
+        branch       : 'main',
+        scriptPath   : 'jenkins_wrapper/CI/auth-service/Jenkinsfile',
+        owner        : 'CI-CD Team',
+        logRotatorNum:  5,
+        parameters   : [
+            [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
+            [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
+        ]
     ]
 ]
 
