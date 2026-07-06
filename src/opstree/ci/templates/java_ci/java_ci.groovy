@@ -128,6 +128,7 @@ def call(Map step_params) {
                                                         withmaven_globaltool_maven: "${get_params_value(enableOverride, step_params, 'withmaven_globaltool_maven')}",
                                                         source_code_path: "${get_params_value(enableOverride, step_params, 'source_code_path')}"
                                 )
+                        }
                 }
                 else {
                         echo 'Skipping Static Code Analysis stage as it is disabled.'
