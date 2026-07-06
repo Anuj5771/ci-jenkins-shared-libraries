@@ -57,7 +57,8 @@ def call(Map step_params) {
                                                 repo_url_type: "${get_params_value(enableOverride, step_params, 'repo_url_type')}",
                                                 gitleaks_report_format: "${get_params_value(enableOverride, step_params, 'gitleaks_report_format')}",
                                                 gitleaks_report_jenkins_publish: "${get_params_value(enableOverride, step_params, 'gitleaks_report_jenkins_publish')}",
-                                                fail_job_if_leak_detected: "${get_params_value(enableOverride, step_params, 'fail_job_if_leak_detected')}"
+                                                fail_job_if_leak_detected: "${get_params_value(enableOverride, step_params, 'fail_job_if_leak_detected')}",
+                                                gitleaks_scan_mode: "${get_params_value(enableOverride, step_params, 'gitleaks_scan_mode') ?: 'latest'}"
                                         )
                             }
                         }
