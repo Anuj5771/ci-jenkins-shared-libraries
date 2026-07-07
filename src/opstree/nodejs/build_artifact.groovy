@@ -28,7 +28,7 @@ def build_artifact(Map step_params) {
     def build_command = step_params.build_command ?: default_build_command
 
     dir("${WORKSPACE}/${repo_dir}${source_code_path ?: ''}") {
-            sh """ docker run --rm -v \${WORKSPACE}/${repo_dir}${source_code_path ?: ''}:/app/ -w /app node:${node_version} sh -c '${build_command}' """
+            sh """ docker run --rm -v \${WORKSPACE}/${repo_dir}${source_code_path ?: ''}:/app/ -w /app node:${node_version} sh -c \\"${build_command}\\" """
             logger.logger('msg':'Build successful', 'level':'INFO')
     }
 }
