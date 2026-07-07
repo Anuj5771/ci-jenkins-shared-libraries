@@ -1,0 +1,88 @@
+@Library('ci-jenkins-shared-libraries@main') _
+def cipipeline = new opstree.ci.templates.java_ci.java_ci()
+
+node {
+  cipipeline.call([
+    // WORKSPACE MANAGEMENT
+    clean_workspace                  : true,
+    // VCS MANAGEMENT
+    repo_https_url                   : "https://bitbucket.org/montra_app/instacard-user-service",
+    repo_ssh_url                     : "git@bitbucket.org:montra_app/instacard-user-service.git",
+    repo_branch                      : params.BRANCH ?: "main",
+    repo_url_type                    : "http",
+    jenkins_git_creds_id             : "BITBUCKET_CREDENTIALS",
+    source_code_path                 : "",
+    // DEPENDENCY SCANNING
+    dependency_check                          : 'true',
+    dependency_scan_tool                      : 'owasp',
+    owasp_project_name                        : 'spring-boot-gradle',  
+    owasp_report_publish                      : 'true',
+    owasp_report_format                       : 'html',
+    fail_job_if_dependency_returned_exception : 'false',
+    nvd_api_key_creds_id                      : 'NVD_API_KEY',
+    // CREDS SCANNING (GITLEAKS)
+    gitleaks_check                   : true,
+    fail_job_if_leak_detected        : false,
+    gitleaks_scan_mode               : 'full',   // options: latest, full, last5, last10
+    gitleaks_report_jenkins_publish  : true,
+    // BUILD ARTIFACT
+    perform_code_build               : true,
+    build_tool                       : 'gradle',   // single quotes = plain String, no GString issue
+    gradle_command                   : 'build',
+    gradle_build_file_location       : '.',
+    java_version                     : '21',       // single quotes = plain String
+    codeartifact_dependency          : false,
+    codeartifact_domain              : '',
+    codeartifact_owner               : '',
+    pom_location                     : '',
+    // UNIT TESTING
+    unit_testing_check               : 'true',     // must be String 'true', not boolean true
+    fail_job_if_unit_issue_detected  : 'false',    // must be String 'false', not boolean false
+    unit_test_reports_path           : '**/build/test-results/test/*.xml',
+    // STATIC CODE ANALYSIS
+    static_code_analysis_check              : true,
+    codebase_to_scan_directory              : '.',
+    path_to_sonar_properties                : 'sonar-project.properties',
+    fail_job_if_analysis_returned_exception : 'false',
+    jenkins_sonarqube_token_creds_id        : 'SONARQUBE_TOKEN',
+    source_code_path                        : "", 
+    // BUILD DOCKERFILE
+    perform_build_dockerfile         : false,
+    dockerfile_location              : '/Dockerfile',
+    dockerfile_context               : '',
+    image_name                       : 'spring-boot-realworld-app',
+    image_tag                        : 'latest',
+    // IMAGE SCANNING (TRIVY)
+    image_scanning_check             : false,
+    scan_severity                    : 'HIGH,CRITICAL',
+    image_scanning_report_publish    : 'true',
+    // IMAGE SIZE VALIDATOR
+    image_size_validator_check       : false,
+    max_allowed_image_size           : '500',
+    fail_job_if_validation_fail      : 'false',
+    // PUBLISH ARTIFACT
+    artifact_publish_check           : false,
+    artifact_destination_type        : 'gcr',
+    docker_image_name                : 'spring-boot-realworld-app',
+    gcp_project_id                   : 'montra-490412',
+    gcr_hostname                     : 'asia-south2-docker.pkg.dev',
+    gcr_repository                   : 'dev-app-images',
+
+    //Deployment
+    enable_trigger_cd_pipeline       : false,
+    trigger_cd_pipeline_path         : "CD/spring-boot-realworld",
+    image_tag_build_param            : 'image_tag',
+
+    //Deployment
+    //enable_trigger_cd_pipeline       : false,
+    // trigger_cd_pipeline_path         : "CD/spring-boot-realworld",
+    // image_tag_build_param            : 'image_tag',
+    // cd_environment_build_param       : 'env',
+    // app_name_build_param             : 'app_name',
+    // env                              : params.ENVIRONMENT,
+    // enable_jira                      : false,
+    // jira_ticket_id_build_param       : 'JIRA_TICKET_ID',
+    // NOTIFICATION
+    notification_enabled             : false
+  ])
+}
