@@ -33,8 +33,9 @@ def ciJobs = [
         parameters   : [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
-        ],
-        'instacard-mock-apis': [
+        ]
+    ],
+    'instacard-mock-apis': [
         url          : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
         credentials  : 'github-token',
         branch       : 'main',
@@ -44,8 +45,9 @@ def ciJobs = [
         parameters   : [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
-        ],
-        'instacard-user-service': [
+        ]
+    ],
+    'instacard-user-service': [
         url          : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
         credentials  : 'github-token',
         branch       : 'main',
@@ -55,19 +57,21 @@ def ciJobs = [
         parameters   : [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
-        ],
-        'virtualcard-service': [
+        ]
+    ],
+    'virtualcard-service': [
         url          : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
         credentials  : 'github-token',
         branch       : 'main',
-        scriptPath   : 'jenkins_wrapper/CI/virtualcard-serviceJenkinsfile',
+        scriptPath   : 'jenkins_wrapper/CI/virtualcard-service/Jenkinsfile',
         owner        : 'CI-CD Team',
         logRotatorNum:  5,
         parameters   : [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
-        ],
-        'sdk-instacard-frontend': [
+        ]
+    ],
+    'sdk-instacard-frontend': [
         url          : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
         credentials  : 'github-token',
         branch       : 'main',
@@ -77,19 +81,21 @@ def ciJobs = [
         parameters   : [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
-        ],
-        'design-ui-framework': [
+       ]
+    ],
+    'design-ui-framework': [
         url          : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
         credentials  : 'github-token',
         branch       : 'main',
-        scriptPath   : 'jenkins_wrapper/CI/design-ui-frameworkJenkinsfile',
+        scriptPath   : 'jenkins_wrapper/CI/design-ui-framework/Jenkinsfile',
         owner        : 'CI-CD Team',
         logRotatorNum:  5,
         parameters   : [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
-        ],
-        'apigateway': [
+        ]
+    ],
+    'apigateway': [
         url          : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
         credentials  : 'github-token',
         branch       : 'main',
@@ -99,8 +105,9 @@ def ciJobs = [
         parameters   : [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
-        ],
-        'montra-bom': [
+        ]
+    ],
+    'montra-bom': [
         url          : 'https://github.com/priyanshu499-ops/ci-jenkins-shared-libraries.git',
         credentials  : 'github-token',
         branch       : 'main',
