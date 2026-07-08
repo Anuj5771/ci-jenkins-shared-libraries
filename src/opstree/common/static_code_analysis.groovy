@@ -35,13 +35,17 @@ def sonar(Map step_params) {
         sonar_project_key = "${step_params.sonar_project_key}"
         sonar_project_name = "${step_params.sonar_project_name}"
         sonar_sources = "${step_params.sonar_sources}"
+        sonar_host_url = "${step_params.sonar_host_url}"
+        sonar_extra_args = "${step_params.sonar_extra_args}"
 
         repo_dir = parser.fetch_git_repo_name('repo_url':"${repo_url}")
         repo_dir = repo_dir + source_code_path
 
         def sonar_cmd = ""
         if (sonar_project_key != 'null' && sonar_project_name != 'null') {
-            sonar_cmd = "-Dsonar.projectKey=${sonar_project_key} -Dsonar.projectName=${sonar_project_name} -Dsonar.sources=${sonar_sources ?: '.'}"
+            def actual_host = (sonar_host_url != 'null' && sonar_host_url != '') ? sonar_host_url : 'http://10.10.128.2:9000'
+            def actual_extra = (sonar_extra_args != 'null') ? sonar_extra_args : ''
+            sonar_cmd = "-Dsonar.projectKey=${sonar_project_key} -Dsonar.projectName=${sonar_project_name} -Dsonar.sources=${sonar_sources ?: '.'} -Dsonar.host.url=${actual_host} ${actual_extra}"
         } else {
             sonar_cmd = "-Dproject.settings=${path_to_sonar_properties}"
         }

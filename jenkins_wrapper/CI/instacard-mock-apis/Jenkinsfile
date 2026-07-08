@@ -46,7 +46,6 @@ node {
     sonar_project_key                       : 'instacard-mock-apis',
     sonar_project_name                      : 'instacard-mock-apis',
     sonar_sources                           : 'src/main/java',
-    sonar_host_url                          : 'http://10.10.128.2:9000',
     sonar_extra_args                        : '-Dsonar.java.binaries=build/classes/java/main',
     fail_job_if_analysis_returned_exception : 'false',
     jenkins_sonarqube_token_creds_id        : 'SONARQUBE_TOKEN',

@@ -37,7 +37,6 @@ node {
     sonar_project_key                       : 'simple-nodejs-app',
     sonar_project_name                      : 'simple-nodejs-app',
     sonar_sources                           : '.',
-    sonar_host_url                          : 'http://10.10.128.2:9000',
     fail_job_if_analysis_returned_exception : 'false',
     jenkins_sonarqube_token_creds_id        : 'SONARQUBE_TOKEN',
     source_code_path                        : "",   
