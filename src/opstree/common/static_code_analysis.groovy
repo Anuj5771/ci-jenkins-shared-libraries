@@ -32,26 +32,35 @@ def sonar(Map step_params) {
         withmaven_globaltool_jdk = "${step_params.withmaven_globaltool_jdk}"
         withmaven_globaltool_maven = "${step_params.withmaven_globaltool_maven}"
         source_code_path = "${step_params.source_code_path}"
+        sonar_project_key = "${step_params.sonar_project_key}"
+        sonar_project_name = "${step_params.sonar_project_name}"
+        sonar_sources = "${step_params.sonar_sources}"
 
         repo_dir = parser.fetch_git_repo_name('repo_url':"${repo_url}")
         repo_dir = repo_dir + source_code_path
+
+        def sonar_cmd = ""
+        if (sonar_project_key != 'null' && sonar_project_name != 'null') {
+            sonar_cmd = "-Dsonar.projectKey=${sonar_project_key} -Dsonar.projectName=${sonar_project_name} -Dsonar.sources=${sonar_sources ?: '.'}"
+        } else {
+            sonar_cmd = "-Dproject.settings=${path_to_sonar_properties}"
+        }
 
         if (fail_job_if_analysis_returned_exception == 'false') {
                 try {
                         withCredentials([string(credentialsId: jenkins_sonarqube_token_creds_id , variable: 'SONAR_TOKEN')]) {
                             withSonarQubeEnv('SonarQube') {
-                                sh "docker run --rm --user root -v $WORKSPACE/'${repo_dir}':/usr/src -v $WORKSPACE/${repo_dir}/.scannerwork:/tmp/.scannerwork  -e SONAR_TOKEN=${SONAR_TOKEN} -e CODEBASE_DIR=/usr/src/'${codebase_to_scan_directory}' -w /usr/src sonarsource/sonar-scanner-cli '-Dproject.settings=${path_to_sonar_properties}'"
+                                sh "docker run --rm --user root -v $WORKSPACE/'${repo_dir}':/usr/src -v $WORKSPACE/${repo_dir}/.scannerwork:/tmp/.scannerwork  -e SONAR_TOKEN=${SONAR_TOKEN} -e CODEBASE_DIR=/usr/src/'${codebase_to_scan_directory}' -w /usr/src sonarsource/sonar-scanner-cli ${sonar_cmd}"
                                 logger.logger('msg':'Static Code Analysis Scanning Complete', 'level':'INFO')
-
-                                sleep(60)
-                                timeout(time: 1, unit: 'MINUTES') {
+                            }
+                            sleep(60)
+                            timeout(time: 1, unit: 'MINUTES') {
                                 dir("${WORKSPACE}/${repo_dir}") {
                                     def qg = waitForQualityGate()
                                     echo 'Finished waiting'
                                     if (qg.status != 'OK') {
                                         logger.logger('msg': "Pipeline aborted due to quality gate failure: ${qg.status}. But Ignoring as per User input", 'level':'WARN')
                                     }
-                                }
                                 }
                             }
                         }
@@ -64,17 +73,17 @@ def sonar(Map step_params) {
                 try {
                         withCredentials([string(credentialsId: jenkins_sonarqube_token_creds_id , variable: 'SONAR_TOKEN')]) {
                             withSonarQubeEnv('SonarQube') {
-                                sh "docker run --rm --user root -v $WORKSPACE/'${repo_dir}':/usr/src -v $WORKSPACE/${repo_dir}/.scannerwork:/tmp/.scannerwork -e SONAR_TOKEN=${SONAR_TOKEN} -e CODEBASE_DIR=/usr/src/'${codebase_to_scan_directory}' -w /usr/src  sonarsource/sonar-scanner-cli '-Dproject.settings=${path_to_sonar_properties}'"
-
+                                sh "docker run --rm --user root -v $WORKSPACE/'${repo_dir}':/usr/src -v $WORKSPACE/${repo_dir}/.scannerwork:/tmp/.scannerwork -e SONAR_TOKEN=${SONAR_TOKEN} -e CODEBASE_DIR=/usr/src/'${codebase_to_scan_directory}' -w /usr/src  sonarsource/sonar-scanner-cli ${sonar_cmd}"
                                 logger.logger('msg':'Static Code Analysis Scanning Complete', 'level':'INFO')
-                                sleep(60)
-                                timeout(time: 1, unit: 'MINUTES') {
-                                    dir("${WORKSPACE}/${repo_dir}") {
-                                        def qg = waitForQualityGate()
-                                        echo 'Finished waiting'
-                                        if (qg.status != 'OK') {
-                                            logger.logger('msg': "Pipeline aborted due to quality gate failure: ${qg.status}.", 'level':'ERROR')
-                                        }
+                            }
+                            sleep(60)
+                            timeout(time: 1, unit: 'MINUTES') {
+                                dir("${WORKSPACE}/${repo_dir}") {
+                                    def qg = waitForQualityGate()
+                                    echo 'Finished waiting'
+                                    if (qg.status != 'OK') {
+                                        logger.logger('msg': "Pipeline aborted due to quality gate failure: ${qg.status}.", 'level':'ERROR')
+                                        error("Quality gate failure: ${qg.status}")
                                     }
                                 }
                             }

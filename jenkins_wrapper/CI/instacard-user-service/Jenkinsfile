@@ -42,7 +42,11 @@ node {
     // STATIC CODE ANALYSIS
     static_code_analysis_check              : true,
     codebase_to_scan_directory              : '.',
-    path_to_sonar_properties                : 'sonar-project.properties',
+    sonar_project_key                       : 'instacard-user-service',
+    sonar_project_name                      : 'instacard-user-service',
+    sonar_sources                           : 'src/main/java',
+    sonar_host_url                          : 'http://10.10.128.2:9000',
+    sonar_extra_args                        : '-Dsonar.java.binaries=build/classes/java/main',
     fail_job_if_analysis_returned_exception : 'false',
     jenkins_sonarqube_token_creds_id        : 'SONARQUBE_TOKEN',
     source_code_path                        : "", 
