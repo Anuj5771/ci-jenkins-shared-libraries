@@ -43,18 +43,32 @@ def sonar(Map step_params) {
 
         def sonar_cmd = ""
         if (sonar_project_key != 'null' && sonar_project_name != 'null') {
-            def actual_host = (sonar_host_url != 'null' && sonar_host_url != '') ? sonar_host_url : 'http://10.10.128.2:9000'
-            def actual_extra = (sonar_extra_args != 'null') ? sonar_extra_args : ''
-            sonar_cmd = "-Dsonar.projectKey=${sonar_project_key} -Dsonar.projectName=${sonar_project_name} -Dsonar.sources=${sonar_sources ?: '.'} -Dsonar.host.url=${actual_host} ${actual_extra}"
+            def actual_sources = (sonar_sources != 'null' && sonar_sources != '') ? sonar_sources : '.'
+            def actual_host   = (sonar_host_url != 'null' && sonar_host_url != '')  ? sonar_host_url  : 'http://10.10.128.2:9000'
+            def actual_extra  = (sonar_extra_args != 'null' && sonar_extra_args != '') ? sonar_extra_args : ''
+            sonar_cmd = "-Dsonar.projectKey=${sonar_project_key} " +
+                        "-Dsonar.projectName=${sonar_project_name} " +
+                        "-Dsonar.sources=${actual_sources} " +
+                        "-Dsonar.host.url=${actual_host} " +
+                        "${actual_extra}"
         } else {
             sonar_cmd = "-Dproject.settings=${path_to_sonar_properties}"
         }
+
+        // Build the docker command — sonar_cmd uses Groovy vars (safe, not secrets)
+        // SONAR_TOKEN is injected via \$SONAR_TOKEN (shell variable) to avoid insecure GString interpolation
+        def docker_cmd = "docker run --rm --user root" +
+                         " -v \$WORKSPACE/${repo_dir}:/usr/src" +
+                         " -v \$WORKSPACE/${repo_dir}/.scannerwork:/tmp/.scannerwork" +
+                         " -e SONAR_TOKEN=\$SONAR_TOKEN" +
+                         " -w /usr/src" +
+                         " sonarsource/sonar-scanner-cli ${sonar_cmd}"
 
         if (fail_job_if_analysis_returned_exception == 'false') {
                 try {
                         withCredentials([string(credentialsId: jenkins_sonarqube_token_creds_id , variable: 'SONAR_TOKEN')]) {
                             withSonarQubeEnv('SonarQube') {
-                                sh "docker run --rm --user root -v $WORKSPACE/'${repo_dir}':/usr/src -v $WORKSPACE/${repo_dir}/.scannerwork:/tmp/.scannerwork  -e SONAR_TOKEN=${SONAR_TOKEN} -e CODEBASE_DIR=/usr/src/'${codebase_to_scan_directory}' -w /usr/src sonarsource/sonar-scanner-cli ${sonar_cmd}"
+                                sh "${docker_cmd}"
                                 logger.logger('msg':'Static Code Analysis Scanning Complete', 'level':'INFO')
                             }
                             sleep(60)
@@ -77,7 +91,7 @@ def sonar(Map step_params) {
                 try {
                         withCredentials([string(credentialsId: jenkins_sonarqube_token_creds_id , variable: 'SONAR_TOKEN')]) {
                             withSonarQubeEnv('SonarQube') {
-                                sh "docker run --rm --user root -v $WORKSPACE/'${repo_dir}':/usr/src -v $WORKSPACE/${repo_dir}/.scannerwork:/tmp/.scannerwork -e SONAR_TOKEN=${SONAR_TOKEN} -e CODEBASE_DIR=/usr/src/'${codebase_to_scan_directory}' -w /usr/src  sonarsource/sonar-scanner-cli ${sonar_cmd}"
+                                sh "${docker_cmd}"
                                 logger.logger('msg':'Static Code Analysis Scanning Complete', 'level':'INFO')
                             }
                             sleep(60)
