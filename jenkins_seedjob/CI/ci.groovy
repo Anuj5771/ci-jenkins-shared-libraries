@@ -5,7 +5,7 @@ def ciJobs = [
         branch       : 'main',
         scriptPath   : 'jenkins_wrapper/CI/spring-boot-realworld/Jenkinsfile',
         owner        : 'priyanshu499-ops',
-        logRotatorNum: 5, // keep only last 5 builds' history
+        logRotatorNum: 5,
         parameters   : [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
@@ -17,7 +17,7 @@ def ciJobs = [
         branch       : 'main',
         scriptPath   : 'jenkins_wrapper/CI/simple-nodejs-app/Jenkinsfile',
         owner        : 'priyanshu499-ops',
-        logRotatorNum: 5, // keep only last 5 builds' history
+        logRotatorNum: 5,
         parameters   : [
             [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
             [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
@@ -112,6 +112,18 @@ def ciJobs = [
         credentials  : 'github-token',
         branch       : 'main',
         scriptPath   : 'jenkins_wrapper/CI/montra-bom/Jenkinsfile',
+        owner        : 'CI-CD Team',
+        logRotatorNum:  5,
+        parameters   : [
+            [name: 'BRANCH', defaultValue: 'main', description: 'Branch to build'],
+            [name: 'ENVIRONMENT', defaultValue: 'dev', description: 'Environment']
+        ]
+    ],
+    'salary-service': [
+        url          : 'https://github.com/Anuj5771/ci-jenkins-shared-libraries.git',
+        credentials  : 'github-token',
+        branch       : 'main',
+        scriptPath   : 'jenkins_wrapper/CI/salary-service/Jenkinsfile',
         owner        : 'CI-CD Team',
         logRotatorNum:  5,
         parameters   : [
