@@ -11,19 +11,14 @@ node {
     repo_ssh_url                     : "https://github.com/opstree/OT-Microservices.git",
     repo_branch                      : params.BRANCH ?: "master",
     repo_url_type                    : "http",
-    jenkins_git_creds_id             : "github-token",
+    jenkins_git_creds_id             : "",     // public repo hai, cred ki zarurat nahi
     source_code_path                 : "/salary",
 
-    // DEPENDENCY SCANNING
-    dependency_check                          : 'true',
-    dependency_scan_tool                      : 'owasp',
-    owasp_project_name                        : 'salary-service',
-    owasp_report_publish                      : 'true',
-    owasp_report_format                       : 'html',
+    // DEPENDENCY SCANNING — OFF (NVD_API_KEY cred nahi hai)
+    dependency_check                          : 'false',
     fail_job_if_dependency_returned_exception : 'false',
-    nvd_api_key_creds_id                      : 'NVD_API_KEY',
 
-    // CREDS SCANNING (GITLEAKS)
+    // CREDS SCANNING (GITLEAKS) — ye cred nahi maangta, isliye ON rehne dete hain
     gitleaks_check                   : true,
     fail_job_if_leak_detected        : false,
     gitleaks_report_format           : "json",
@@ -43,24 +38,18 @@ node {
     fail_job_if_unit_issue_detected  : 'false',
     unit_test_reports_path           : '**/target/surefire-reports/*.xml',
 
-    // STATIC CODE ANALYSIS
-    static_code_analysis_check              : true,
-    codebase_to_scan_directory              : '.',
-    sonar_project_key                       : 'salary-service',
-    sonar_project_name                      : 'salary-service',
-    sonar_sources                           : 'src/main/java',
-    sonar_extra_args                        : '-Dsonar.java.binaries=target/classes',
+    // STATIC CODE ANALYSIS — OFF (SONARQUBE_TOKEN cred nahi hai)
+    static_code_analysis_check              : false,
     fail_job_if_analysis_returned_exception : 'false',
-    jenkins_sonarqube_token_creds_id        : 'SONARQUBE_TOKEN',
 
-    // BUILD DOCKERFILE
+    // BUILD DOCKERFILE — ye local build hai, cred nahi chahiye
     perform_build_dockerfile         : true,
     dockerfile_location              : '/Dockerfile',
     dockerfile_context               : '',
     image_name                       : 'salary-service',
     image_tag                        : 'latest',
 
-    // IMAGE SCANNING (TRIVY)
+    // IMAGE SCANNING (TRIVY) — ye bhi cred nahi maangta
     image_scanning_check             : true,
     scan_severity                    : 'HIGH,CRITICAL',
     image_scanning_report_publish    : 'true',
@@ -70,10 +59,10 @@ node {
     max_allowed_image_size           : '500',
     fail_job_if_validation_fail      : 'false',
 
-    // PUBLISH ARTIFACT — abhi off
+    // PUBLISH ARTIFACT — OFF (GCR/DockerHub cred nahi hai)
     artifact_publish_check           : false,
 
-    // DEPLOYMENT — abhi off
+    // DEPLOYMENT — OFF
     enable_trigger_cd_pipeline       : false,
 
     // NOTIFICATION
