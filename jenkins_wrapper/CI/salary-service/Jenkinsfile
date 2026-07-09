@@ -12,13 +12,13 @@ node {
     repo_branch                      : params.BRANCH ?: "master",
     repo_url_type                    : "http",
     jenkins_git_creds_id             : "github-token",
-    source_code_path                 : '/salary/Dockerfile',
+    source_code_path                 : "/salary",
 
-    // DEPENDENCY SCANNING — OFF (NVD_API_KEY cred nahi hai)
+    // DEPENDENCY SCANNING — OFF
     dependency_check                          : 'false',
     fail_job_if_dependency_returned_exception : 'false',
 
-    // CREDS SCANNING (GITLEAKS) — ye cred nahi maangta, isliye ON rehne dete hain
+    // CREDS SCANNING (GITLEAKS)
     gitleaks_check                   : true,
     fail_job_if_leak_detected        : false,
     gitleaks_report_format           : "json",
@@ -38,18 +38,18 @@ node {
     fail_job_if_unit_issue_detected  : 'false',
     unit_test_reports_path           : '**/target/surefire-reports/*.xml',
 
-    // STATIC CODE ANALYSIS — OFF (SONARQUBE_TOKEN cred nahi hai)
+    // STATIC CODE ANALYSIS — OFF
     static_code_analysis_check              : false,
     fail_job_if_analysis_returned_exception : 'false',
 
-    // BUILD DOCKERFILE — ye local build hai, cred nahi chahiye
+    // BUILD DOCKERFILE
     perform_build_dockerfile         : true,
-    dockerfile_location              : '/Dockerfile',
+    dockerfile_location              : '/salary/Dockerfile',
     dockerfile_context               : '/salary',
     image_name                       : 'salary-service',
     image_tag                        : 'latest',
 
-    // IMAGE SCANNING (TRIVY) — ye bhi cred nahi maangta
+    // IMAGE SCANNING (TRIVY)
     image_scanning_check             : true,
     scan_severity                    : 'HIGH,CRITICAL',
     image_scanning_report_publish    : 'true',
@@ -59,7 +59,7 @@ node {
     max_allowed_image_size           : '500',
     fail_job_if_validation_fail      : 'false',
 
-    // PUBLISH ARTIFACT — OFF (GCR/DockerHub cred nahi hai)
+    // PUBLISH ARTIFACT — OFF
     artifact_publish_check           : false,
 
     // DEPLOYMENT — OFF
