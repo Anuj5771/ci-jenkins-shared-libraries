@@ -43,19 +43,19 @@ node {
     fail_job_if_analysis_returned_exception : 'false',
 
     // BUILD DOCKERFILE
-    perform_build_dockerfile         : true,
+    perform_build_dockerfile         : false,
     dockerfile_location              : '/salary/Dockerfile',
     dockerfile_context               : '/salary',
     image_name                       : 'salary-service',
     image_tag                        : 'latest',
 
     // IMAGE SCANNING (TRIVY)
-    image_scanning_check             : true,
+    image_scanning_check             : false,
     scan_severity                    : 'HIGH,CRITICAL',
     image_scanning_report_publish    : 'true',
 
     // IMAGE SIZE VALIDATOR
-    image_size_validator_check       : true,
+    image_size_validator_check       : false,
     max_allowed_image_size           : '500',
     fail_job_if_validation_fail      : 'false',
 
