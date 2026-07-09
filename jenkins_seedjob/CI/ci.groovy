@@ -121,7 +121,7 @@ def ciJobs = [
     ],
     'salary-service': [
         url          : 'https://github.com/Anuj5771/ci-jenkins-shared-libraries.git',
-        credentials  : 'github-token',
+        credentials  : '',
         branch       : 'main',
         scriptPath   : 'jenkins_wrapper/CI/salary-service/Jenkinsfile',
         owner        : 'CI-CD Team',
