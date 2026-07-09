@@ -12,7 +12,7 @@ node {
     repo_branch                      : params.BRANCH ?: "master",
     repo_url_type                    : "http",
     jenkins_git_creds_id             : "github-token",
-    source_code_path                 : "/salary",
+    source_code_path                 : "/OT-Microservices/salary",
 
     // DEPENDENCY SCANNING — OFF
     dependency_check                          : 'false',
