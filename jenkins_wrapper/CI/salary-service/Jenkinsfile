@@ -22,7 +22,7 @@ node {
     gitleaks_check                   : true,
     fail_job_if_leak_detected        : false,
     gitleaks_report_format           : "json",
-    gitleaks_report_jenkins_publish  : true,
+    gitleaks_report_jenkins_publish  : false,
 
     // BUILD ARTIFACT
     perform_code_build               : true,
