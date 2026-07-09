@@ -12,7 +12,7 @@ node {
     repo_branch                      : params.BRANCH ?: "master",
     repo_url_type                    : "http",
     jenkins_git_creds_id             : "github-token",
-    source_code_path                 : "/OT-Microservices/salary",
+    source_code_path                 : '/salary/Dockerfile',
 
     // DEPENDENCY SCANNING — OFF (NVD_API_KEY cred nahi hai)
     dependency_check                          : 'false',
@@ -45,7 +45,7 @@ node {
     // BUILD DOCKERFILE — ye local build hai, cred nahi chahiye
     perform_build_dockerfile         : true,
     dockerfile_location              : '/Dockerfile',
-    dockerfile_context               : '',
+    dockerfile_context               : '/salary',
     image_name                       : 'salary-service',
     image_tag                        : 'latest',
 
