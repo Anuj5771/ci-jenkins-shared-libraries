@@ -4,6 +4,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                         http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.29.xsd">
+
     <!-- MASTER changelog - only includes other files, never write changesets here -->
     <!--
     <include file="changes/v1_initial_schema.xml" relativeToChangelogFile="true"/>
@@ -11,7 +12,4 @@
     <include file="changes/v3_add_orders_table.xml" relativeToChangelogFile="true"/>
     -->
 
-    <changeSet id="test-invalid-001" author="test">
-        <thisTagDoesNotExist/>
-    </changeSet>
 </databaseChangeLog>
